@@ -1,0 +1,93 @@
+
+[
+  {
+    "id": 1,
+    "name": "Wireless Noise-Canceling Headphones",
+    "category": "Electronics",
+    "price": 299.99,
+    "originalPrice": 349.99,
+    "description": "Premium over-ear headphones with industry-leading noise cancellation and 30-hour battery life.",
+    "rating": 4.8,
+    "reviews": 2847,
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
+    "tags": ["wireless", "bluetooth", "noise-canceling"]
+  },
+  {
+    "id": 2,
+    "name": "Smart Fitness Watch",
+    "category": "Fitness",
+    "price": 249.99,
+    "description": "Track your workouts, heart rate, and sleep patterns with GPS and 7-day battery life.",
+    "rating": 4.6,
+    "reviews": 1523,
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop",
+    "tags": ["fitness", "gps", "heart-rate"]
+  },
+  {
+    "id": 3,
+    "name": "Organic Cotton Yoga Mat",
+    "category": "Fitness",
+    "price": 89.99,
+    "description": "Eco-friendly premium yoga mat made from organic cotton with superior grip and cushioning.",
+    "rating": 4.9,
+    "reviews": 892,
+    "image": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop",
+    "tags": ["yoga", "organic", "eco-friendly"]
+  },
+  {
+    "id": 4,
+    "name": "Professional Coffee Maker",
+    "category": "Home & Kitchen",
+    "price": 199.99,
+    "originalPrice": 259.99,
+    "description": "Brew barista-quality coffee at home with programmable settings and thermal carafe.",
+    "rating": 4.7,
+    "reviews": 3421,
+    "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop",
+    "tags": ["coffee", "programmable", "thermal"]
+  },
+  {
+    "id": 5,
+    "name": "Adjustable Standing Desk",
+    "category": "Home & Office",
+    "price": 399.99,
+    "description": "Electric height-adjustable desk with memory presets and cable management system.",
+    "rating": 4.5,
+    "reviews": 756,
+    "image": "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop",
+    "tags": ["adjustable", "electric", "ergonomic"]
+  },
+  {
+    "id": 6,
+    "name": "Portable Bluetooth Speaker",
+    "category": "Electronics",
+    "price": 79.99,
+    "description": "Waterproof speaker with 360-degree sound and 12-hour battery life.",
+    "rating": 4.4,
+    "reviews": 1289,
+    "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=300&fit=crop",
+    "tags": ["bluetooth", "waterproof", "portable"]
+  },
+  {
+    "id": 7,
+    "name": "LED Desk Lamp",
+    "category": "Home & Office",
+    "price": 59.99,
+    "description": "Adjustable LED lamp with wireless charging base and touch controls.",
+    "rating": 4.3,
+    "reviews": 634,
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
+    "tags": ["led", "wireless-charging", "adjustable"]
+  },
+  {
+    "id": 8,
+    "name": "Resistance Band Set",
+    "category": "Fitness",
+    "price": 29.99,
+    "description": "Complete workout system with 5 resistance levels and portable carrying case.",
+    "rating": 4.6,
+    "reviews": 2156,
+    "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
+    "tags": ["resistance", "portable", "workout"]
+  }
+]
