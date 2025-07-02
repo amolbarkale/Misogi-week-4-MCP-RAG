@@ -1,54 +1,59 @@
 import streamlit as st
-import google.generativeai as genai
-# from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from googleapiclient.discovery import build
 
-st.set_page_config(page_title="Simple Chat Bot")
+st.set_page_config(page_title="Simple Search Chat Bot")
 
-st.markdown("# Simple Chat Bot page 🗨️")
-st.sidebar.markdown("# Chat Bot page 🗨️")
+st.markdown("# Simple Google-Search Chat Bot 🔎")
+st.sidebar.markdown("# Chat Bot page 🔎")
 
 # Load environment variables from .env file
-# load_dotenv()
-# GOOGLE_API_KEY = os.getenv("AIzaSyDMeSwgaPXIYrgqpli2VXMzcoxYyWUZotU")
+load_dotenv()
+GOOGLE_SEARCH_API_KEY = os.getenv("GOOGLE_API_KEY")  
+GOOGLE_SEARCH_CX = os.getenv("GOOGLE_CLIENT_ID")
 
-# if not GOOGLE_API_KEY:
-#     st.error("Please set GEMINI_API_KEY in a .env file to use the chatbot.")
-#     st.stop()
+if not GOOGLE_SEARCH_API_KEY or not GOOGLE_SEARCH_CX:
+    st.error("Please set GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_CX in a .env file to use the chatbot.")
+    st.stop()
 
-# Configure Google Generative AI
-genai.configure(api_key="AIzaSyDMeSwgaPXIYrgqpli2VXMzcoxYyWUZotU")
+# Build the Google Custom Search service
+_search_service = build("customsearch", "v1", developerKey=GOOGLE_SEARCH_API_KEY)
 
-# Initialize gemini-2.0-flash-001 model and chat session
-_model = genai.GenerativeModel("gemini-2.0-flash-001")
-_chat = _model.start_chat(history=[])
+def get_google_results(query: str, *, num_results: int = 5):
+    """Return a list of search-result dicts for the query."""
+    try:
+        response = _search_service.cse().list(q=query, cx=GOOGLE_SEARCH_CX, num=num_results).execute()
+        return response.get("items", [])
+    except Exception as exc:
+        st.error(f"Error while querying Google Search API: {exc}")
+        return []
 
-def get_gemini_response(query: str):
-    """Send the user query to gemini-2.0-flash-001 and stream back the response chunks."""
-    return _chat.send_message(query, stream=True)
-
-st.header("A simple Chat Bot")
+st.header("Ask me anything – I'll search Google for you")
 
 # Initialize session state for chat history if it doesn't exist
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
-# Single-line text input widget
 input_text = st.text_input("Input:", key="input")
-submit_button = st.button("Get Instant answers")
+submit_button = st.button("Search on Google")
 
 if submit_button and input_text:
-    # Call Gemini and stream response
-    response_chunks = get_gemini_response(input_text)
+    results = get_google_results(input_text)
 
-    # Add user query to chat history
+    # Store the user query
     st.session_state["chat_history"].append(("You", input_text))
 
-    st.subheader("The Response is")
-    for chunk in response_chunks:
-        st.write(chunk.text)
-        st.session_state["chat_history"].append(("Bot", chunk.text))
+    st.subheader("Top Results")
+    if not results:
+        st.info("No results found.")
+    for idx, item in enumerate(results, start=1):
+        title = item.get("title")
+        link = item.get("link")
+        snippet = item.get("snippet")
+        st.markdown(f"**{idx}. [{title}]({link})**\n\n{snippet}")
+        st.session_state["chat_history"].append(("Result", f"{title} – {link}"))
 
-st.subheader("The Chat History is")
+st.subheader("Chat History")
 for role, text in st.session_state["chat_history"]:
     st.write(f"{role}: {text}")
