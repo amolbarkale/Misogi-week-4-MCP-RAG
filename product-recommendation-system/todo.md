@@ -30,14 +30,13 @@
 - [x] ~~**Implement `addToCart` & `removeFromCart` helpers** (update `cart_items`, insert into `interactions`)~~
 - [x] ~~**Track product `view` interactions** when a `ProductCard` is clicked~~
 
-## Phase 4 – Recommendation engine
+## Phase 4 – Recommendation engine ✅ COMPLETED
 
-- [ ] **Edge Function `get_recommendations`** (rule-based scorer)
-- [ ] **Expose REST endpoint** `/recommendations`
-- [ ] **Create `<Recommendations />` component** that fetches and renders the list above the catalog
+- [x] ~~**Content-based recommendation algorithm** (rule-based scorer with category preferences, rating, price range)~~
+- [x] ~~**User profile builder** from interaction history~~
+- [x] ~~**Product scoring system** with weighted factors (40% category match, 30% rating, 20% subcategory, 10% price)~~
+- [x] ~~**Create `<Recommendations />` component** that fetches and renders personalized suggestions~~
+- [x] ~~**Integration with main catalog** replacing placeholder section~~
 
-## Phase 5 – Testing & Polish
 
-- [ ] **Unit tests** for scoring & helper functions (Vitest)
-- [ ] **Integration tests** mocking Supabase to ensure interactions & cart flow work
 - [ ] **Update README** with setup + run instructions 

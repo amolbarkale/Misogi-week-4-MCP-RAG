@@ -3,6 +3,7 @@ import ProductCard from './ProductCard';
 import CategoryFilter from './CategoryFilter';
 import Header from './Header';
 import CartSidebar from './CartSidebar';
+import Recommendations from './Recommendations';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import mockProducts from '@/data/mockProducts.json';
@@ -110,22 +111,8 @@ const ProductCatalog: React.FC = () => {
           </div>
         )}
 
-        {/* Recommendation Placeholder */}
-        <div className="mt-16 p-8 bg-blue-50 rounded-xl border-2 border-dashed border-blue-200">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              🤖 Personalized Recommendations Coming Soon!
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Connect with Supabase to unlock AI-powered product recommendations based on your preferences and browsing history.
-            </p>
-            <div className="flex justify-center space-x-4 text-sm text-gray-500">
-              <span>• User Authentication</span>
-              <span>• Behavior Tracking</span>
-              <span>• Smart Suggestions</span>
-            </div>
-          </div>
-        </div>
+        {/* AI-Powered Recommendations */}
+        <Recommendations />
       </div>
     </div>
   );
