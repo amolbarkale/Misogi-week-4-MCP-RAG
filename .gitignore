@@ -23,7 +23,7 @@ training_logs_*.txt
 **/cache/
 
 # Environment files
-.env
+.env*
 .venv/
 env/
 venv/
