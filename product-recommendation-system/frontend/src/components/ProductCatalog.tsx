@@ -1,7 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import ProductCard from './ProductCard';
 import CategoryFilter from './CategoryFilter';
+import Header from './Header';
+import CartSidebar from './CartSidebar';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import mockProducts from '@/data/mockProducts.json';
@@ -42,6 +43,9 @@ const ProductCatalog: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <Header />
+      <CartSidebar />
+      
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
