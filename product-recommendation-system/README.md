@@ -2,6 +2,17 @@
 
 A modern e-commerce application with intelligent product recommendations built using **React**, **TypeScript**, **Supabase**, and **Content-Based Filtering** algorithms.
 
+## 📸 **Screenshots**
+
+### Landing Page & Product Catalog
+![E-commerce Landing Page](./frontend/public/e-commerce-1.jpg)
+
+### AI-Powered Recommendations
+![Product Recommendations](./frontend/public/e-commerce-2.jpg)
+
+### Shopping Cart & User Interface
+![Shopping Cart Interface](./frontend/public/e-commerce-3.jpg)
+
 ## 🎯 **Core Purpose**
 
 This system demonstrates how AI + algorithms can enhance online shopping by:
