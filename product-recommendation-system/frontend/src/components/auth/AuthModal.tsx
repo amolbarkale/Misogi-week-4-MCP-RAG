@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -34,9 +33,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </DialogTitle>
         </DialogHeader>
         {mode === 'login' ? (
-          <LoginForm onSwitchToSignup={handleSwitchToSignup} />
+          <LoginForm 
+            onSwitchToSignup={handleSwitchToSignup} 
+            onClose={onClose}
+          />
         ) : (
-          <SignupForm onSwitchToLogin={handleSwitchToLogin} />
+          <SignupForm 
+            onSwitchToLogin={handleSwitchToLogin} 
+            onClose={onClose}
+          />
         )}
       </DialogContent>
     </Dialog>

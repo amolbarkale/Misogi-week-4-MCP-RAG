@@ -4,7 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Star, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { trackInteraction } from '@/lib/cartService';
 
 interface Product {
   id: number;
@@ -24,23 +26,51 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, loading } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const discountPercentage = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  const handleAddToCart = () => {
-    addToCart(product);
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
+  const handleCardClick = async () => {
+    // Track view interaction
+    await trackInteraction(product.id, 'view');
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when button is clicked
+    
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to cart.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addToCart(product);
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <Card className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white border border-gray-200">
+    <Card 
+      className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-white border border-gray-200"
+      onClick={handleCardClick}
+    >
       <div className="relative overflow-hidden rounded-t-lg">
         <img 
           src={product.image} 
@@ -99,10 +129,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           
           <Button 
             onClick={handleAddToCart}
+            disabled={loading}
             className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
           >
             <ShoppingCart className="w-4 h-4" />
-            <span>Add</span>
+            <span>{loading ? 'Adding...' : 'Add'}</span>
           </Button>
         </div>
       </CardContent>

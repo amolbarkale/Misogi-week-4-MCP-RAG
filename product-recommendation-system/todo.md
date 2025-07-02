@@ -16,18 +16,19 @@
 - [x] ~~**Create RLS policies for `cart_items`** (CRUD limited to owner)~~
 - [ ] (Optional) **Create `profiles` table** `(id, username, avatar_url)` + RLS
 
-## Phase 2 – Frontend auth integration
+## Phase 2 – Frontend auth integration ✅
 
-- [ ] **Add env vars** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → `.env.local`
+- [x] ~~**Add env vars** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` → `.env.local`~~
 - [x] ~~**Add `src/lib/supabaseClient.ts`** that calls `createClient(...)`~~
-- [ ] **Replace local `AuthContext` with Supabase session context**
-  - Signup / Login modals call `supabase.auth.signUp` / `signInWithPassword`
-  - Store user session; subscribe to `supabase.auth.onAuthStateChange`
+- [x] ~~**Replace local `AuthContext` with Supabase session context**~~
+  - ~~Signup / Login modals call `supabase.auth.signUp` / `signInWithPassword`~~
+  - ~~Store user session; subscribe to `supabase.auth.onAuthStateChange`~~
+- [x] ~~**Fix modal closing after successful login/signup**~~
 
 ## Phase 3 – Cart & Interaction tracking
 
-- [ ] **Implement `addToCart` & `removeFromCart` helpers** (update `cart_items`, insert into `interactions`)
-- [ ] **Track product `view` interactions** when a `ProductCard` is clicked
+- [x] ~~**Implement `addToCart` & `removeFromCart` helpers** (update `cart_items`, insert into `interactions`)~~
+- [x] ~~**Track product `view` interactions** when a `ProductCard` is clicked~~
 
 ## Phase 4 – Recommendation engine
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
+  onClose: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onClose }) => {
   const { signIn, loading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup }) => {
         title: 'Success',
         description: 'Logged in successfully!',
       });
+      onClose();
     } catch (error) {
       toast({
         title: 'Error',
