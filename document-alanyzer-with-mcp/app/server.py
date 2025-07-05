@@ -15,6 +15,12 @@ api.mount(
     name="static",
 )
 
+# Add health check endpoint
+@api.get("/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring"""
+    return {"status": "healthy", "service": "MCP Document Analyzer"}
+
 # 2) Wrap that FastAPI app in FastMCP
 #    (this will auto-generate /mcp/…, /tools/…, etc. on your FastAPI instance)
 mcp = FastMCP.from_fastapi(api, name="Doc-Analyzer")  # ✨ note: from_fastapi, not the ctor
