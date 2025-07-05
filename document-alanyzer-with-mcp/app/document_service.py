@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import re
 
-from .database import (
+from database import (
     Document, 
     get_document_by_id, 
     add_document_to_db, 
@@ -13,7 +13,7 @@ from .database import (
     search_documents_fts,
     get_session
 )
-from .nlp import (
+from nlp import (
     analyze_text_comprehensive,
     get_word_stats,
     get_sentiment,

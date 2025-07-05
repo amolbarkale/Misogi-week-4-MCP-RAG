@@ -43,6 +43,59 @@ python -m app.server
 
 The server will start on `http://localhost:8000`
 
+## 🔍 MCP Inspector for Testing & Debugging
+
+The MCP Inspector provides a web interface to test and debug your MCP server without needing external tools like Claude or Cursor.
+
+### Quick Start with Inspector
+
+**Option 1: PowerShell (Recommended for Windows)**
+```powershell
+.\run_inspector.ps1
+```
+
+**Option 2: Command Prompt**
+```cmd
+run_inspector.bat
+```
+
+**Option 3: Python Script**
+```bash
+python run_inspector.py
+```
+
+### Manual Inspector Setup
+
+1. **Install MCP Inspector**
+```bash
+pip install mcp-inspector
+```
+
+2. **Start the Inspector**
+```bash
+mcp-inspector --config mcp_inspector_config.json
+```
+
+3. **Access the Inspector**
+   - Open your browser to `http://localhost:3000`
+   - The inspector will automatically connect to your Document Analyzer server
+   - Test all 5 tools directly in the web interface
+
+### What You Can Test
+
+- **analyze_document**: Test document analysis with sample documents
+- **get_sentiment**: Try sentiment analysis on different text samples
+- **extract_keywords**: Test keyword extraction with various parameters
+- **add_document**: Add new documents and see them analyzed
+- **search_documents**: Test full-text search functionality
+
+### Debugging Features
+
+- **Tool Validation**: Verify all tools are properly registered
+- **Error Inspection**: See detailed error messages and stack traces
+- **Performance Monitoring**: Monitor tool execution times
+- **Resource Testing**: Test server resources and capabilities
+
 ### Docker Installation
 
 1. **Build the Docker image**
@@ -54,6 +107,55 @@ docker build -t mcp-doc-analyzer .
 ```bash
 docker run -p 8000:8000 mcp-doc-analyzer
 ```
+
+## 🎯 Cursor IDE Integration
+
+Integrate your Document Analyzer with Cursor IDE to use document analysis tools directly in your development environment.
+
+### Quick Setup
+
+**Option 1: Automatic Setup (Recommended)**
+```powershell
+# Windows PowerShell
+.\setup_cursor_mcp.ps1
+```
+
+**Option 2: Python Script (Cross-platform)**
+```bash
+python setup_cursor_mcp.py
+```
+
+### Manual Setup
+
+1. **Open Cursor Settings**
+   - Go to: `Cursor Settings > Features > MCP`
+   - Click: `+ Add New MCP Server`
+
+2. **Configure Server**
+   - **Name**: `document-analyzer`
+   - **Type**: `stdio`
+   - **Command**: `python /path/to/your/project/app/server.py`
+
+3. **Save and Restart Cursor IDE**
+
+### Usage in Cursor
+
+Once configured, use these commands in Cursor's Composer:
+
+- **Document Analysis**: "Analyze document 1 for sentiment and keywords"
+- **Sentiment Analysis**: "Get sentiment of this text: [your text]"
+- **Keyword Extraction**: "Extract keywords from: [your text]"
+- **Document Search**: "Search for documents about machine learning"
+- **Add Documents**: "Add this document to the database: [title] [content]"
+
+### Features in Cursor
+
+- **5 MCP Tools**: All document analysis tools available
+- **Natural Language**: Use tools with conversational commands
+- **Workflow Integration**: Analyze code comments, documentation, etc.
+- **Real-time Analysis**: Instant feedback on text analysis
+
+For detailed setup instructions, see [CURSOR_INTEGRATION.md](CURSOR_INTEGRATION.md)
 
 ## 📡 MCP Tools
 

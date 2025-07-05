@@ -28,4 +28,7 @@ pytest>=7.4.0
 pytest-asyncio>=0.21.0
 
 # Development
-python-dotenv>=1.0.0 
+python-dotenv>=1.0.0
+
+# MCP Inspector for debugging and testing
+mcp-inspector>=0.3.0 
