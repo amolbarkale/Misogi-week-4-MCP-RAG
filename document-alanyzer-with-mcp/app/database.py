@@ -4,6 +4,7 @@ from sqlmodel import SQLModel, Field, create_engine, Session, select, text
 from typing import Optional, List
 from datetime import datetime
 import json
+import sys
 
 # Database Models
 class Document(SQLModel, table=True):
@@ -87,7 +88,7 @@ def init_database():
         """))
         
         session.commit()
-        print("Database initialized with FTS support")
+        print("Database initialized with FTS support", file=sys.stderr)
 
 def get_session():
     """Get database session"""

@@ -7,6 +7,7 @@ import nlp
 from database import init_database
 from document_service import document_service
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -21,9 +22,9 @@ if static_dir.exists() and static_dir.is_dir():
         StaticFiles(directory=str(static_dir)),
         name="static",
     )
-    print(f"Static files mounted from: {static_dir.absolute()}")
+    print(f"Static files mounted from: {static_dir.absolute()}", file=sys.stderr)
 else:
-    print(f"Warning: Static directory not found: {static_dir.absolute()}")
+    print(f"Warning: Static directory not found: {static_dir.absolute()}", file=sys.stderr)
 
 # Add health check endpoint
 @api.get("/health")
@@ -210,8 +211,16 @@ def search_documents(query: str, limit: int = 10) -> dict:
 
 if __name__ == "__main__":
     # Initialize database before starting server
-    print("Initializing database...")
+    print("Initializing database...", file=sys.stderr)
     init_database()
     
-    # 3) Start in HTTP mode, host & port can be customized
-    mcp.run(transport="http", host="0.0.0.0", port=8000)
+    # Check if running in HTTP mode or STDIO mode
+    # Default to STDIO for MCP inspector compatibility
+    transport_mode = os.getenv("MCP_TRANSPORT", "stdio")
+    
+    if transport_mode == "http":
+        # 3) Start in HTTP mode, host & port can be customized
+        mcp.run(transport="http", host="0.0.0.0", port=8000)
+    else:
+        # Start in STDIO mode for MCP inspector
+        mcp.run(transport="stdio")
