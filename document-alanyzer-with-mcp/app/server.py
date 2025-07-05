@@ -32,8 +32,8 @@ def health_check():
     return {"status": "healthy", "service": "MCP Document Analyzer"}
 
 # 2) Wrap that FastAPI app in FastMCP
-#    (this will auto-generate /mcp/…, /tools/…, etc. on your FastAPI instance)
-mcp = FastMCP.from_fastapi(api, name="Doc-Analyzer")  # ✨ note: from_fastapi, not the ctor
+#    (this will auto-generate /mcp/..., /tools/..., etc. on your FastAPI instance)
+mcp = FastMCP.from_fastapi(api, name="Doc-Analyzer")  # note: from_fastapi, not the ctor
 
 @mcp.tool
 def get_sentiment(text: str) -> dict:
@@ -210,7 +210,7 @@ def search_documents(query: str, limit: int = 10) -> dict:
 
 if __name__ == "__main__":
     # Initialize database before starting server
-    print("🗄️ Initializing database...")
+    print("Initializing database...")
     init_database()
     
     # 3) Start in HTTP mode, host & port can be customized

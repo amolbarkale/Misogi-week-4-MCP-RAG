@@ -87,7 +87,7 @@ def init_database():
         """))
         
         session.commit()
-        print("✅ Database initialized with FTS support")
+        print("Database initialized with FTS support")
 
 def get_session():
     """Get database session"""
