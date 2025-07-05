@@ -1,0 +1,737 @@
+ector embeddings and Retrieval-Augmented Generation (RAG) systems represent a fundamental breakthrough in how machines understand and process human language. These technologies enable applications to bridge the gap between statistical pattern recognition and semantic understanding, transforming everything from search engines to chatbots into context-aware, intelligent systems.
+
+The rise of RAG systems reflects a critical need: while large language models contain vast knowledge, they suffer from hallucinations, outdated information, and inability to access private data. RAG solves these problems by combining the reasoning capabilities of LLMs with the precision of information retrieval, creating systems that are both knowledgeable and grounded in facts.
+
+1. Vector embeddings fundamentals
+What are vector embeddings and why they're essential
+Vector embeddings are dense numerical representations that capture semantic meaning in high-dimensional space. Mathematically, an embedding is a function that maps discrete objects (words, sentences, documents) to continuous vectors:
+
+E: X → R^d
+
+Where X is the input space and R^d is a d-dimensional real vector space (typically 256-4096 dimensions).
+
+Key properties that make embeddings essential:
+
+Semantic proximity: Similar concepts cluster together in vector space
+Linear relationships: Analogies can be expressed as vector arithmetic (king - man + woman ≈ queen)
+Distributional representation: Meaning emerges from contextual patterns
+Computational efficiency: Enable fast similarity searches across millions of documents
+How embeddings encode meaning and context numerically
+Modern transformer-based embeddings capture meaning through contextual relationships rather than static representations. Unlike early word2vec models that assigned one vector per word, contemporary embeddings like BERT and OpenAI's text-embedding-3-large generate dynamic representations based on surrounding context.
+
+The encoding process works through several mechanisms:
+
+Attention mechanisms weight the influence of each word on every other word in a sequence
+Positional encoding captures word order and syntactic relationships
+Multi-layer processing builds increasingly abstract representations
+Bidirectional context considers both preceding and following words
+Mathematical representation:
+
+Attention(Q, K, V) = softmax(QK^T/√d_k)V
+
+Where queries (Q), keys (K), and values (V) matrices enable the model to focus on relevant parts of the input when generating embeddings.
+
+The role of embeddings in the RAG pipeline
+RAG systems use embeddings as the bridge between natural language queries and stored knowledge. The pipeline consists of four core components:
+
+1. Indexing (Offline Phase)
+
+Documents are split into chunks using strategies like recursive character splitting
+Each chunk is converted to a vector embedding using models like text-embedding-3-large
+Embeddings are stored in specialized vector databases (Pinecone, Weaviate, Chroma)
+2. Retrieval (Query Phase)
+
+User queries are converted to embeddings using the same model
+Similarity search finds the most relevant document chunks
+Techniques like cosine similarity or dot product rank relevance
+3. Augmentation (Context Assembly)
+
+Retrieved chunks are combined with the original query
+Prompt engineering templates structure the context for the LLM
+Metadata and source attribution are preserved
+4. Generation (Response Creation)
+
+The LLM processes the augmented prompt containing relevant context
+Response generation is grounded in retrieved information
+Citations and source links maintain transparency
+Other benefits of embeddings beyond RAG
+Semantic search capabilities transform how users interact with information systems. Unlike keyword matching, semantic search understands intent and context, enabling queries like "find documents about reducing operational costs" to match content discussing "efficiency improvements" and "budget optimization."
+
+Contextual understanding enables applications to grasp nuanced meaning. For example, the word "bank" receives different embeddings in "river bank" versus "financial bank," allowing systems to provide contextually appropriate responses.
+
+Personalization becomes possible through user preference modeling. By analyzing interaction patterns and feedback, systems can adjust retrieval and ranking to match individual user needs and domain expertise.
+
+Clustering and categorization emerge naturally from embedding similarity. Documents, products, or user queries can be automatically grouped by semantic similarity, enabling features like "related articles" or content recommendations.
+
+2. Similarity metrics and search comparison
+Understanding similarity measurement
+Cosine similarity measures the angle between two vectors, making it ideal for text applications where direction matters more than magnitude:
+
+def cosine_similarity(vec1, vec2):
+    """Calculate cosine similarity between two vectors"""
+    dot_product = np.dot(vec1, vec2)
+    norm_product = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+    return dot_product / norm_product
+
+# Range: [-1, 1], where 1 is identical and -1 is opposite
+
+function cosineSimilarity(vec1, vec2) {
+    const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
+    const norm1 = Math.sqrt(vec1.reduce((sum, val) => sum + val * val, 0));
+    const norm2 = Math.sqrt(vec2.reduce((sum, val) => sum + val * val, 0));
+    return dotProduct / (norm1 * norm2);
+}
+
+Euclidean distance calculates straight-line distance between vectors, useful when absolute differences matter:
+
+def euclidean_distance(vec1, vec2):
+    """Calculate Euclidean distance between vectors"""
+    return np.linalg.norm(np.array(vec1) - np.array(vec2))
+
+# Range: [0, ∞), where 0 is identical and larger values indicate greater difference
+
+Dot product combines both magnitude and direction, offering computational efficiency:
+
+def dot_product_similarity(vec1, vec2):
+    """Calculate dot product similarity"""
+    return np.dot(vec1, vec2)
+
+# Range: (-∞, ∞), considers both vector magnitude and direction
+
+Keyword search vs semantic search comparison
+Keyword search (lexical search) operates through exact term matching using techniques like TF-IDF scoring and Boolean operations. It excels at finding specific technical terms, proper names, and exact phrases but struggles with synonyms, context, and natural language variations.
+
+Semantic search (vector search) understands meaning and context through embeddings. It handles synonyms naturally, captures user intent, and works with conversational queries but requires more computational resources and can sometimes retrieve conceptually related but not directly relevant results.
+
+3. Document chunking strategies
+The importance of effective chunking
+Document chunking significantly impacts RAG system performance because it determines what information gets retrieved and how coherently context is presented to the LLM. Poor chunking can break sentences mid-thought, lose important context, or create chunks too large for effective retrieval.
+
+Key considerations for chunking:
+
+Semantic coherence: Chunks should contain complete thoughts or concepts
+Size optimization: Balance between context richness and retrieval precision
+Overlap strategy: Prevent context loss at chunk boundaries
+Document structure: Respect natural boundaries like paragraphs and sections
+Fixed-size chunking implementation
+Recursive character text splitting respects natural document boundaries:
+
+from langchain.text_splitters import RecursiveCharacterTextSplitter
+
+def recursive_chunking(text, chunk_size=1000, chunk_overlap=200):
+    """Split text using hierarchical separators"""
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        separators=["\n\n", "\n", ". ", " ", ""]  # Try separators in order
+    )
+
+    chunks = splitter.split_text(text)
+    return chunks
+
+# Example usage
+text = "Your document content here..."
+chunks = recursive_chunking(text)
+
+class RecursiveTextSplitter {
+    constructor(chunkSize = 1000, chunkOverlap = 200) {
+        this.chunkSize = chunkSize;
+        this.chunkOverlap = chunkOverlap;
+        this.separators = ["\n\n", "\n", ". ", " ", ""];
+    }
+
+    splitText(text) {
+        const chunks = [];
+        let currentChunk = "";
+
+        for (const separator of this.separators) {
+            const parts = text.split(separator);
+
+            for (const part of parts) {
+                if (currentChunk.length + part.length <= this.chunkSize) {
+                    currentChunk += part + separator;
+                } else {
+                    if (currentChunk) {
+                        chunks.push(currentChunk.trim());
+                        currentChunk = part + separator;
+                    }
+                }
+            }
+
+            if (currentChunk) {
+                chunks.push(currentChunk.trim());
+            }
+
+            return chunks;
+        }
+    }
+}
+
+Advanced chunking strategies
+Semantic chunking uses embedding similarity to identify natural breakpoints:
+
+def semantic_chunking(text, embedding_model, similarity_threshold=0.5):
+    """Chunk text based on semantic similarity between sentences"""
+    sentences = sent_tokenize(text)
+    embeddings = [embedding_model.encode(sentence) for sentence in sentences]
+
+    chunks = []
+    current_chunk = [sentences[0]]
+
+    for i in range(1, len(sentences)):
+        similarity = cosine_similarity(embeddings[i-1], embeddings[i])
+
+        if similarity > similarity_threshold:
+            current_chunk.append(sentences[i])
+        else:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = [sentences[i]]
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+Document-aware chunking leverages markup structure:
+
+def markdown_aware_chunking(markdown_text, max_chunk_size=1000):
+    """Chunk markdown while preserving structure"""
+    sections = markdown_text.split('\n## ')  # Split by headers
+    chunks = []
+
+    for section in sections:
+        if len(section) <= max_chunk_size:
+            chunks.append(section)
+        else:
+            # Further split large sections
+            paragraphs = section.split('\n\n')
+            current_chunk = ""
+
+            for paragraph in paragraphs:
+                if len(current_chunk) + len(paragraph) <= max_chunk_size:
+                    current_chunk += paragraph + "\n\n"
+                else:
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+                    current_chunk = paragraph + "\n\n"
+
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+
+    return chunks
+
+4. Practical implementation with frameworks
+LangChain integration for Python
+Complete RAG pipeline using LangChain's latest patterns:
+
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_core.output_parsers import StrOutputParser
+
+class LangChainRAG:
+    def __init__(self, openai_api_key, persist_directory="./chroma_db"):
+        self.embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-large",
+            openai_api_key=openai_api_key
+        )
+        self.llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            openai_api_key=openai_api_key
+        )
+        self.persist_directory = persist_directory
+
+    def ingest_documents(self, urls):
+        """Load, chunk, and store documents"""
+        # Load documents
+        loader = WebBaseLoader(urls)
+        documents = loader.load()
+
+        # Split documents
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            add_start_index=True
+        )
+        splits = text_splitter.split_documents(documents)
+
+        # Create vector store
+        self.vectorstore = Chroma.from_documents(
+            documents=splits,
+            embedding=self.embeddings,
+            persist_directory=self.persist_directory
+        )
+
+        return len(splits)
+
+    def create_rag_chain(self):
+        """Create RAG chain with retrieval and generation"""
+        # Retriever
+        retriever = self.vectorstore.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={"score_threshold": 0.5, "k": 6}
+        )
+
+        # Prompt template
+        template = """Use the following pieces of context to answer the question at the end.
+        If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        Use three sentences maximum and keep the answer concise.
+
+        Context: {context}
+        Question: {question}
+
+        Answer:"""
+
+        prompt = PromptTemplate.from_template(template)
+
+        # Create chain
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
+
+        rag_chain = (
+            RunnableParallel(
+                {"context": retriever | format_docs, "question": RunnablePassthrough()}
+            )
+            | prompt
+            | self.llm
+            | StrOutputParser()
+        )
+
+        return rag_chain
+
+    def query(self, question):
+        """Query the RAG system"""
+        chain = self.create_rag_chain()
+        return chain.invoke(question)
+
+# Usage example
+rag = LangChainRAG(openai_api_key="your-api-key")
+urls = ["https://example.com/docs"]
+rag.ingest_documents(urls)
+response = rag.query("What is the main topic?")
+
+JavaScript/Node.js implementation
+LangChain.js RAG system with Express.js integration:
+
+import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
+import { HNSWLib } from "@langchain/community/vectorstores/hnswlib";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { formatDocumentsAsString } from "langchain/util/document";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence, RunnablePassthrough } from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import express from 'express';
+
+class NodeRAGSystem {
+    constructor(apiKey) {
+        this.llm = new ChatOpenAI({
+            openAIApiKey: apiKey,
+            modelName: "gpt-4o-mini",
+            temperature: 0
+        });
+
+        this.embeddings = new OpenAIEmbeddings({
+            openAIApiKey: apiKey,
+            modelName: "text-embedding-3-large"
+        });
+
+        this.vectorStore = null;
+    }
+
+    async ingestDocuments(documents) {
+        const textSplitter = new RecursiveCharacterTextSplitter({
+            chunkSize: 1000,
+            chunkOverlap: 200
+        });
+
+        const splits = await textSplitter.splitDocuments(documents);
+
+        this.vectorStore = await HNSWLib.fromDocuments(
+            splits,
+            this.embeddings
+        );
+
+        return splits.length;
+    }
+
+    async createRAGChain() {
+        const prompt = PromptTemplate.fromTemplate(`
+            Answer the question based only on the following context:
+            {context}
+
+            Question: {question}
+
+            Answer:
+        `);
+
+        const chain = RunnableSequence.from([
+            {
+                context: this.vectorStore.asRetriever().pipe(formatDocumentsAsString),
+                question: new RunnablePassthrough()
+            },
+            prompt,
+            this.llm,
+            new StringOutputParser()
+        ]);
+
+        return chain;
+    }
+
+    async query(question) {
+        const chain = await this.createRAGChain();
+        return await chain.invoke(question);
+    }
+}
+
+// Express.js API server
+const app = express();
+app.use(express.json());
+
+const ragSystem = new NodeRAGSystem(process.env.OPENAI_API_KEY);
+
+app.post('/ingest', async (req, res) => {
+    try {
+        const { documents } = req.body;
+        const count = await ragSystem.ingestDocuments(documents);
+        res.json({ message: `Ingested ${count} document chunks` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/query', async (req, res) => {
+    try {
+        const { question } = req.body;
+        const answer = await ragSystem.query(question);
+        res.json({ answer });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.listen(3000, () => {
+    console.log('RAG API server running on port 3000');
+});
+
+5. Vector database setup and selection
+Understanding vector engines vs vector databases
+Vector engines (like FAISS, Annoy, HNSWLib) are optimized libraries for similarity search but lack database features. They work well for static datasets and offline processing but don't support real-time updates, metadata filtering, or distributed scaling.
+
+Vector databases (Pinecone, Weaviate, Chroma, Qdrant) provide full CRUD operations, metadata filtering, real-time updates, and horizontal scaling. They're essential for production applications with dynamic data requirements.
+
+Choosing the right vector database
+For production at scale: Pinecone offers managed infrastructure with automatic scaling, sub-2ms latency, and enterprise features. It's ideal when you need turnkey performance without operational overhead.
+
+For cost-sensitive applications: Qdrant provides excellent performance at the lowest cost, with 4x RPS advantages in benchmarks and pricing starting at $9 for 50k vectors.
+
+For development and prototyping: Chroma excels with its simple API, excellent LangChain integration, and minimal setup requirements.
+
+For complex filtering and hybrid search: Weaviate combines vector search with traditional database capabilities, offering GraphQL APIs and strong module ecosystems.
+
+Database setup and configuration
+Pinecone setup for production deployments:
+
+from pinecone import Pinecone, ServerlessSpec
+import os
+
+# Initialize Pinecone
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+
+# Create serverless index
+index_name = "rag-index"
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        dimension=1536,  # Match embedding model dimensions
+        spec=ServerlessSpec(
+            cloud='aws',
+            region='us-east-1'
+        )
+    )
+
+# Connect to index
+index = pc.Index(index_name)
+
+# Upsert vectors with metadata
+vectors = [
+    {
+        "id": "doc-1",
+        "values": embedding_vector,
+        "metadata": {"title": "Document Title", "source": "web"}
+    }
+]
+index.upsert(vectors=vectors)
+
+Chroma setup for local development:
+
+import chromadb
+from chromadb.config import Settings
+
+# Create persistent client
+client = chromadb.PersistentClient(
+    path="./chroma_db",
+    settings=Settings(allow_reset=True)
+)
+
+# Create collection with custom embedding function
+collection = client.create_collection(
+    name="rag_collection",
+    metadata={"hnsw:space": "cosine"}
+)
+
+# Add documents
+collection.add(
+    documents=["Document content here"],
+    metadatas=[{"source": "web", "title": "Example"}],
+    ids=["doc-1"]
+)
+
+# Query collection
+results = collection.query(
+    query_texts=["What is the main topic?"],
+    n_results=5
+)
+
+Weaviate setup with Docker:
+
+# docker-compose.yml
+version: '3.4'
+services:
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.31.3
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      ENABLE_MODULES: 'text2vec-openai,generative-openai'
+      ENABLE_API_BASED_MODULES: 'true'
+      OPENAI_APIKEY: ${OPENAI_API_KEY}
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+volumes:
+  weaviate_data:
+
+import weaviate
+import os
+
+# Connect to Weaviate
+client = weaviate.connect_to_local(
+    headers={"X-OpenAI-Api-Key": os.getenv("OPENAI_API_KEY")}
+)
+
+# Create collection
+collection = client.collections.create(
+    name="Documents",
+    vectorizer_config=weaviate.classes.config.Configure.Vectorizer.text2vec_openai(
+        model="text-embedding-3-large"
+    ),
+    generative_config=weaviate.classes.config.Configure.Generative.openai(
+        model="gpt-4o-mini"
+    )
+)
+
+# Add documents
+collection.data.insert({
+    "title": "RAG Systems",
+    "content": "Retrieval-Augmented Generation combines..."
+})
+
+# Query with generative search
+response = collection.generate.near_text(
+    query="What is RAG?",
+    limit=3,
+    single_prompt="Explain this concept: {content}"
+)
+
+6. Embedding model selection and fine-tuning
+Comparing embedding models
+OpenAI embeddings offer state-of-the-art performance with consistent API access. The text-embedding-3-large model (3072 dimensions) provides the best accuracy, while text-embedding-3-small (1536 dimensions) offers optimized cost-performance balance.
+
+Open-source alternatives like all-mpnet-base-v2 (768 dimensions) and all-MiniLM-L6-v2 (384 dimensions) enable local deployment without API dependencies, though they may require fine-tuning for domain-specific applications.
+
+Model selection decision framework
+Choose OpenAI embeddings when:
+
+You need best-in-class performance immediately
+Your application handles general domain content
+You prefer managed infrastructure over self-hosting
+Cost is secondary to accuracy and convenience
+Choose open-source models when:
+
+Data privacy requires local processing
+You have domain-specific content requiring fine-tuning
+You want to minimize ongoing operational costs
+You have GPU infrastructure for model hosting
+Fine-tuning strategies
+When to fine-tune embedding models:
+
+Your domain has specialized vocabulary (medical, legal, technical)
+General models show poor performance on your specific content
+You have sufficient labeled data for training (1000+ examples)
+Performance improvement justifies the computational cost
+7. Advanced RAG techniques and optimizations
+Re-rankers and hybrid search systems
+Re-rankers improve retrieval quality by using more sophisticated models for second-stage ranking after initial retrieval. Cross-encoder models like BERT can analyze query-document pairs more deeply than embedding similarity alone.
+
+Multi-query retrieval and query expansion
+Query expansion addresses the vocabulary mismatch problem by generating alternative query formulations:
+
+async def multi_query_retrieval(query, llm, vector_store, num_queries=3):
+    """Generate multiple query variations for better retrieval"""
+    # Generate query variations
+    expansion_prompt = f"""
+    Generate {num_queries} different ways to ask the following question:
+    {query}
+
+    Provide only the alternative questions, one per line.
+    """
+
+    response = await llm.apredict(expansion_prompt)
+    queries = [query] + [line.strip() for line in response.split('\n') if line.strip()]
+
+    # Retrieve for each query
+    all_results = []
+    for q in queries:
+        results = vector_store.similarity_search(q, k=10)
+        all_results.extend(results)
+
+    # Deduplicate and rank
+    unique_results = {}
+    for result in all_results:
+        if result.page_content not in unique_results:
+            unique_results[result.page_content] = result
+
+    return list(unique_results.values())
+
+Speech-to-text integration for multimedia content
+Integrating speech-to-text enables RAG systems to work with audio and video content:
+
+import whisper
+import tempfile
+import os
+
+class MultimodalRAG:
+    def __init__(self, rag_system):
+        self.rag_system = rag_system
+        self.whisper_model = whisper.load_model("turbo")
+
+    def transcribe_audio(self, audio_file_path):
+        """Transcribe audio file using Whisper"""
+        result = self.whisper_model.transcribe(audio_file_path)
+        return result["text"]
+
+    def process_video_content(self, video_path):
+        """Extract audio from video and process through RAG"""
+        # Extract audio using ffmpeg
+        audio_path = "temp_audio.wav"
+        os.system(f"ffmpeg -i {video_path} -acodec pcm_s16le -ar 16000 {audio_path}")
+
+        try:
+            # Transcribe audio
+            transcript = self.transcribe_audio(audio_path)
+
+            # Process through RAG
+            response = self.rag_system.query(transcript)
+
+            return {
+                'transcript': transcript,
+                'rag_response': response
+            }
+        finally:
+            # Clean up temporary file
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+
+Using OpenAI's Whisper API for scalable transcription:
+
+import OpenAI from 'openai';
+import fs from 'fs';
+
+class AudioRAG {
+    constructor(apiKey) {
+        this.openai = new OpenAI({ apiKey });
+        this.ragSystem = new NodeRAGSystem(apiKey);
+    }
+
+    async transcribeAudio(audioFilePath) {
+        const transcript = await this.openai.audio.transcriptions.create({
+            file: fs.createReadStream(audioFilePath),
+            model: "whisper-1",
+            response_format: "text"
+        });
+
+        return transcript;
+    }
+
+    async processAudioQuery(audioFilePath) {
+        const transcript = await this.transcribeAudio(audioFilePath);
+        const response = await this.ragSystem.query(transcript);
+
+        return {
+            transcript,
+            answer: response
+        };
+    }
+}
+
+8. Troubleshooting and debugging
+Common issues and solutions
+Retrieval quality problems often stem from poor chunking or inappropriate similarity thresholds. Debug by examining retrieved documents and adjusting chunk size, overlap, or similarity metrics.
+
+Context window limitations require careful context management. Implement contextual compression using smaller LLMs to summarize retrieved content before final generation.
+
+Hallucination issues can be addressed through faithfulness scoring, source attribution, and explicit instructions to acknowledge uncertainty when information isn't available.
+
+Performance bottlenecks typically occur in embedding generation or vector search. Optimize through batch processing, caching, and appropriate vector database configuration.
+
+Debugging tools and techniques
+Vector similarity visualization helps identify retrieval problems:
+
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+
+def visualize_embeddings(embeddings, labels):
+    """Visualize embeddings using t-SNE"""
+    # Reduce dimensionality for visualization
+    tsne = TSNE(n_components=2, random_state=42)
+    embeddings_2d = tsne.fit_transform(embeddings)
+
+    # Create scatter plot
+    plt.figure(figsize=(10, 8))
+    plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=labels, cmap='viridis')
+    plt.colorbar()
+    plt.title('Document Embeddings Visualization')
+    plt.xlabel('t-SNE Component 1')
+    plt.ylabel('t-SNE Component 2')
+    plt.show()
+
+Retrieval analysis for understanding system behavior:
+
+def analyze_retrieval_quality(queries, expected_documents):
+    """Analyze retrieval quality for debugging"""
+
+    for query in queries:
+        # Get retrieval results
+        results = vector_store.similarity_search_with_score(query, k=10)
+
+        # Analyze results
+        print(f"Query: {query}")
+        print(f"Top results:")
+        for i, (doc, score) in enumerate(results[:5]):
+            print(f"  {i+1}. Score: {score:.3f} - {doc.page_content[:100]}...")
+
+        # Check if expected documents are retrieved
+        retrieved_content = [doc.page_content for doc, _ in results]
+        for expected in expected_documents.get(query, []):
+            if any(expected in content for content in retrieved_content):
+                print(f"  ✓ Expected document found")
+            else:
+                print(f"  ✗ Expected document missing: {expected[:50]}...")
+
+        print()

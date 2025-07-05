@@ -1,0 +1,135 @@
+AI Coding Tools – Lecture Notes
+Multi-Modal QA Agents
+Multi-modal question-answering agents integrate vision and language processing to handle inputs like images with associated text. Modern LMMs (large multimodal models) such as GPT-4o, GPT-4.5, or Google’s Gemini can jointly analyze an image and a text query. For example, a user might provide a photo of a storefront and ask, “What products are on sale?” The agent would send both the image and text to a vision-capable model. The model then “answers general questions about what’s present in the images”. If the user instead provides only text (or if the vision analysis fails), the system falls back to a text-only LLM.
+
+Workflow: On receiving an input, the agent checks if it contains an image (URL or base64). If so, it constructs a chat request to a vision-enabled model (e.g. GPT-4o) with a message like “What is in this image?” alongside the image. Otherwise, it queries a standard text LLM. In pseudo-code:
+
+if user_input.has_image():
+    response = vision_LLM.ask(image=user_input.image, text=user_input.text)
+else:
+    response = text_LLM.ask(user_input.text)
+Examples: Using OpenAI’s API, one could do:
+
+from openai import OpenAI
+client = OpenAI(api_key="...")  # Vision-capable model
+messages = [
+    {"role": "system", "content": "You are a helpful assistant describing images."},
+    {"role": "user", "content": [
+         {"type": "text", "text": "How many animals are in this image?"},
+         {"type": "image_url", "image_url": {"url": IMAGE_URL}}
+    ]}
+]
+resp = client.chat.completions.create(model="gpt-4o", messages=messages)
+print(resp.choices[0].message.content)
+# Example output: "The image shows 3 cats and 1 dog, so 4 animals in total."
+If the image upload fails (e.g. bad URL), the agent would retry with a text-only model on the question. This fallback ensures reliability in case vision analysis cannot proceed.
+
+Capabilities and Limitations: Current vision-LMMs can caption images, recognize objects, read text in images, and answer related queries. Some models also handle audio or video, but video understanding and generation remain limited. These QA agents can, if supported, even highlight image regions (bounding boxes or keypoints) that justify the answer. For example, a model might return the count “5” and highlight each detected fruit.
+
+Development Approach: The assignment encouraged exploration: students were expected to research available vision-LLM APIs (OpenAI’s vision models, Google Gemini, etc.) and experiment without step-by-step instructions. This hands-on approach builds intuition. For instance, students might try Hugging Face pipelines for image-to-text (like blip or gpt4o-mini) or OpenAI’s vision API.
+
+Figure: Illustration of a transformer’s self-attention focusing on relevant tokens (e.g. the word “it” attends to “The animal”). Vision-language models use a similar attention mechanism internally to integrate visual and textual information.
+
+Generative AI Key Concepts & Reasoning LLMs
+Reasoning LLMs are fine-tuned to generate explicit chain-of-thought (step-by-step reasoning) before giving a final answer. This “think-out-loud” process is induced either by prompting or built into the model through training. Chain-of-thought (CoT) prompting has been shown to dramatically improve performance on complex tasks (math, logic, common sense) by guiding the model through intermediate steps. For example, instead of jumping straight to “The solution is 42,” a CoT model might enumerate sub-steps (“Let’s compute the sum of the tens, then the units, …”).
+
+Training: Reasoning models are typically trained in stages. First, a base LLM undergoes Supervised Fine-Tuning (SFT) on datasets that include step-by-step solutions. Then Reinforcement Learning from Human Feedback (RLHF) may further align the model to prefer valid reasoning chains. As one analysis explains, OpenAI’s models “learn to recognize and correct mistakes… [and] try a different approach when one isn’t working,” greatly enhancing their reasoning ability. In effect, the model internalizes the “think step-by-step” habit as default behavior.
+Output Characteristics: A reasoning LLM may produce a much longer output, since it “does more computation by reasoning through the steps,” which increases inference cost but yields better accuracy on hard problems. Practically, models trained for reasoning often require longer maximum output token windows to accommodate these internal steps. At inference time, techniques like speculative decoding or extended beam search can be used to accelerate generation, trading compute for precision. This test-time compute investment (generating many intermediate tokens) can surpass the model’s training-time capacity for reasoning, thus improving answer quality beyond what a non-reasoning model could achieve with the same prompt.
+Prompting vs. Fine-tuned Reasoning: Note that any LLM can often be coaxed into chain-of-thought with clever prompts (e.g. adding “explain your reasoning step-by-step”). However, models explicitly fine-tuned as reasoning models perform better out-of-the-box on complex tasks. As one source notes, simply prompting an enormous model (540B parameters) to “think step-by-step” achieved state-of-the-art on a math benchmark. Reasoning-specialized models internalize this without explicit prompts.
+LLM Inference Frameworks
+Inference refers to running a trained model to generate predictions (tokens) given user inputs. Balancing speed, throughput, and hardware constraints is crucial. Two broad deployment modes exist:
+
+Local/single-user inference: Lightweight engines like llama.cpp enable running large models on a single machine with minimal setup. Llama.cpp is a pure C/C++ implementation optimized for CPUs and edge GPUs (including Apple Silicon via Metal support). For example, one can install llama.cpp and run:
+
+llama-cli -m path/to/model.gguf --prompt "Hello, how are you?"
+Llama.cpp supports quantized models (4-bit, 8-bit, etc.) for faster inference on limited hardware. Another local solution is Ollama, a user-friendly app that lets you download and run models on Mac/Windows. These tools are great for experimentation or low-load use. However, they lack built-in support for parallelism, so they don’t scale well to many simultaneous users.
+
+Server/multi-user inference: For serving many requests in production, distributed frameworks are used. vLLM (by Meta/Hugging Face) is one such library. vLLM allows sharding a model across GPUs (using tensor or pipeline parallelism) to handle large models and batch many queries efficiently. For example, vLLM supports Megatron-LM’s tensor parallel algorithm and can run across multiple GPUs using Ray or multiprocessing. A typical usage might be:
+
+from vllm import LLM
+llm = LLM("facebook/opt-13b", tensor_parallel_size=4)
+output = llm.generate("San Francisco is a")
+print(output.generations[0].text)
+# e.g., "San Francisco is a beautiful city in California..."
+(Adapted from vLLM docs.) vLLM handles the GPU memory, batching, and scheduling to maximize throughput. Other frameworks include Hugging Face’s accelerate or Triton-based servers for model inference. The key is that these frameworks trade off some latency for the ability to serve many users and larger models.
+
+Choosing a framework: The trade-offs include hardware efficiency vs. cost and complexity. Llama.cpp or Ollama excel on a laptop or single-machine GPU for development. vLLM, KFServing, Triton, or commercial endpoints are used when you need multi-GPU scaling or low latency under heavy load. As one source notes, llama.cpp’s goal is “minimal setup and state-of-the-art performance on a wide range of hardware”, whereas vLLM “supports distributed tensor- and pipeline-parallel inference and serving”.
+
+Context Window and Attention Mechanisms
+The context window is the maximum number of input tokens an LLM can process at once. Modern models vary from ~4K tokens (early GPT) to 128K or more for specialized models. A larger window lets the model consider more text (long chats, documents, code) as “working memory.” However, big context windows have costs and limits:
+
+Figure: Visualization of a transformer’s self-attention focusing on relevant tokens (from Alammar’s Illustrated Transformer). Each word in the input attends to others; this parallel attention is the core of context processing. Doubling the context length means each token attends to twice as many tokens, roughly quadrupling compute and memory.
+
+Compute cost: The self-attention mechanism scales roughly quadratically with sequence length. As IBM researchers state, “when a text sequence doubles in length, an LLM requires four times as much memory and compute to process it”. In practice, doubling tokens from 32K to 64K would require ~4× the GPU work, slowing inference.
+Performance limits: More context isn’t always better. Studies show that LLMs tend to focus on information at the beginning or end of a long prompt, and struggle to use details buried in the middle. In other words, key facts lost in a 128K token “haystack” may not be effectively utilized by the model. Extremely long prompts can even degrade accuracy due to noise and conflicting information. One blog notes that very large context windows can overwhelm a model’s “attention,” and like humans, LLMs may have difficulty picking out the needle in the haystack.
+Inference speed: ‘Prompt stuffing’ (adding more and more context) slows down inference. Every extra token is processed through all transformer layers. Companies paying by token or GPU time will see costs rise with window size. For example, IBM engineers liken long context inference to doing a “Command+F” across a huge document on every query, which is wasteful.
+Mitigations: Techniques like Retrieval-Augmented Generation (RAG) help keep context manageable. Instead of feeding entire documents, a RAG system retrieves only relevant snippets for the user’s query and passes those in the prompt. This “grounds” the LLM in fresh, specific information and reduces hallucinations. As one source explains, RAG “retrieves information specifically relevant to the query… combining it with the user’s query… allowing the model to generate a response based on both its external knowledge and up-to-date data”. By focusing on key facts, RAG improves accuracy and cuts down on unnecessary context processing.
+Function Calling with LLMs (Tool/API Integration)
+LLMs on their own cannot execute code or fetch live data. Function calling bridges this gap by letting the model propose which tool or API to use, and with what arguments. The general flow is:
+
+Define functions/tools: The developer describes available actions (e.g. fetching weather, calendar lookup) as JSON schemas. Each function has a name, description, and parameter schema (type, properties) so the model knows how to use it.
+
+Include in prompt: When calling the LLM (via Chat API), these function schemas are passed along with the user messages. The LLM now “knows” what tools exist and what arguments they take.
+
+Model outputs a function call: If the user’s query requires an external action, the fine-tuned LLM will output a special JSON structure instead of plain text. For example, asking “What’s the weather in Paris?” might yield a message with
+
+{
+  "function_call": {
+    "name": "get_current_weather",
+    "arguments": "{\"location\": \"Paris, France\", \"unit\": \"celsius\"}"
+  }
+}
+This means the model suggests calling get_current_weather(location: "Paris, France", unit: "celsius"). (Models like GPT-4 are trained to do this detection automatically.)
+
+Execute function: The backend parses the JSON, calls the actual function or API (e.g. a Python function or a REST endpoint) with the given arguments, and obtains a result (or error).
+
+Return result to model: The function’s output is sent back to the model as a message. The conversation then continues, allowing the LLM to incorporate the function result into a final answer for the user. For example, after getting the weather data, the model might say: “The current weather in Paris is 15°C with light rain.”
+
+LLM tool-calling is supported by many frameworks. For instance, OpenAI’s chat API accepts a functions list (JSON) and returns a function_call in the response. LangChain and other libraries provide decorators or classes to define tools easily and bind them to LLM calls. The Prompt Engineering Guide notes that chat models “have been fine-tuned to detect when a function needs to be called and then output JSON containing arguments”. Similarly, multiple LLM providers (OpenAI, Google, Mistral, Anthropic, etc.) now support this mechanism so that the LLM can seamlessly interact with APIs.
+
+Example (OpenAI style):
+
+import json
+from openai import OpenAI
+client = OpenAI(api_key="...")
+functions = [
+    {
+        "name": "get_current_weather",
+        "description": "Get current weather for a location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {"type": "string", "description": "City, e.g. 'San Francisco, CA'"},
+                "unit": {"type": "string", "enum": ["celsius","fahrenheit"]}
+            },
+            "required": ["location"]
+        }
+    }
+]
+# Step 1: LLM call suggests a function
+resp = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "What's the weather in Rome?"}],
+    functions=functions,
+    function_call="auto"
+)
+func_call = resp.choices[0].message["function_call"]
+args = json.loads(func_call["arguments"])
+# args might be {"location": "Rome", "unit": "celsius"}
+# Step 2: Execute the function (backend)
+weather_info = get_current_weather(location=args["location"], unit=args.get("unit"))
+# Step 3: Send result back to LLM
+follow_up = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "user", "content": "What's the weather in Rome?"},
+        {"role": "assistant", "function_call": func_call},
+        {"role": "function", "name": "get_current_weather", "content": json.dumps(weather_info)}
+    ]
+)
+print(follow_up.choices[0].message.content)
+This would print the assistant’s natural-language answer including the fetched weather.
+
+Error handling: If the function/API fails (e.g. network error), that error string is sent as the “function” response to the LLM. The model will then output a user-friendly error or alternative guidance. This way, the system gracefully handles failures (e.g. “I’m sorry, I couldn’t retrieve the weather right now.”).
+
+In summary, function calling turns LLMs into flexible agents. Instead of saying “I can’t execute code,” the LLM says “call funcX with these parameters,” and the system carries it out. This is crucial for building useful applications (e.g. booking systems, knowledge bases, calculators) where the LLM leverages external tools.

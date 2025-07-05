@@ -1,0 +1,82 @@
+Key Features
+AI-powered multi-line edits: Press Tab to accept context-aware suggestions across files
+Chat exploration: Ask "How does feature X work?" to navigate unfamiliar code
+Explicit context rules: Document project conventions for consistent AI assistance
+Targeted prompts: Use @file, @code tags for surgical context
+Workflow Best Practices
+Plan first: Create step-by-step feature plans before coding
+Use rules: Encode long-term project knowledge for reusable context
+Test assistance: Generate unit test scaffolding and fix import errors
+Precise context: Tag specific files/symbols to avoid hallucinations
+What is MCP?
+
+Model-Context Protocol = Open standard for connecting AI systems to external data/tools
+
+"USB-C port for AI" - standardized interface
+Solves integration overhead: one protocol, any AI host ↔ any data source
+Secure, two-way communication between models and external systems
+Problem MCP Solves
+Without MCP: Every data source needs custom implementation With MCP: Uniform protocol for all integrations
+
+MCP Architecture
+AI Host (Cursor/Claude) → MCP Client → MCP Server → External APIs/Data
+Components
+Host: AI application coordinating workflow
+Client: Handles communication (1:1 with server)
+Server: Lightweight program exposing tools/resources
+Transport: stdio (local) or HTTP (remote)
+Workflow
+Start MCP server
+Connect client with server details
+Server advertises available tools
+AI invokes tools via MCP messages
+
+MCP Use Cases
+Common Integrations
+Project Management: Jira, Linear (update tickets, fetch stories)
+Documentation: Notion, Google Docs (answer questions from team docs)
+Development: GitHub, Git (code context)
+Data: Postgres, APIs (query databases)
+Example Tools
+list_files(folder) - Google Drive
+search_documents(query) - Notion
+get_ticket(id) - Jira
+Custom domain-specific functions
+MCP vs LangChain
+Aspect	MCP	LangChain
+Type	Protocol standard	Framework
+Interoperability	Any MCP host	LangChain ecosystem only
+Reusability	Universal tools	Framework-specific
+Integration	Can adapt to LangChain via langchain-mcp-adapters	Native tools
+Key: MCP = plumbing, LangChain = orchestration. They complement each other.
+
+Security & Deployment
+Security Best Practices
+Use trusted MCP servers only
+Implement granular permissions
+Deploy on-premises for sensitive data
+Explicit user consent flows
+Transport Options
+stdio: Local development (fast, secure)
+HTTP/SSE: Production (scalable, remote access)
+Using MCP with Cursor
+Setup Steps
+Find MCP server (marketplace/directory)
+Copy run command or URL
+Add to Cursor settings → "Add New MCP Server"
+Cursor connects and displays available tools
+Usage
+Chat: "Fetch latest Notion doc about feature X and summarize"
+→ Cursor sends MCP request
+→ Server returns data
+→ AI uses response in conversation
+Benefits
+Seamless external context integration
+No more guessing or manual searches
+Unified code + external data access
+Key Takeaways
+MCP standardizes AI-tool integration - "USB-C for AI"
+Cursor + MCP = powerful large codebase development
+Reusable servers across different AI platforms
+Security through controlled, trusted connections
+FastMCP makes Python server development simple

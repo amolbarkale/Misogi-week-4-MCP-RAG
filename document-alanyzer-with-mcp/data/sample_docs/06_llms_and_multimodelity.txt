@@ -1,0 +1,93 @@
+Base LLMs are pretrained on large general corpora (like web text, books) to predict the next word. They have broad knowledge but don’t reliably follow instructions — they may complete prompts generically instead of answering directly.
+
+Instruction-tuned LLMs are base models further trained on prompt-response pairs (often human-written) to better follow instructions. This process, often combined with RLHF, results in models like ChatGPT that understand user intent and give helpful, detailed answers.
+
+Fine-tuned models (in the broader sense) are further adapted for specific tasks or domains — e.g., a company fine-tuning an instruct model on internal data or code (like Meta’s Llama 2 vs Llama-2-Chat vs Code Llama). This customizes behavior and injects domain knowledge.
+
+Summary:
+
+Base models: general, not instruction-aware
+Instruction-tuned models: general-purpose assistants that follow instructions
+Fine-tuned models: specialized for tasks or domains
+When to Fine-Tune a Model
+Not every application needs a custom fine-tune – often prompt engineering or using an instruct model suffices. However, there are clear scenarios where fine-tuning an LLM is advantageous:
+
+Customization for Tone/Style or Use-Case: If you need the model to speak in a specific voice, follow a strict format, or perform a narrow task (e.g. medical Q&A), fine-tuning on example data will align the model’s outputs with your desired style and task requirements. This yields more consistent, relevant responses than prompting alone.
+Incorporating Proprietary Knowledge: When an LLM needs information not present in its original training (for instance, internal company data or up-to-date research), fine-tuning on that dataset can teach the model that content, making its answers accurate and specific to your knowledge base.
+Compliance and Control: Fine-tuning allows enforcing organizational rules or safety constraints by training on data that emphasizes those values. In regulated industries, an in-house fine-tuned model can ensure outputs meet compliance or policy guidelines better than a generic model.
+Performance Gains on Specific Tasks: If you have labeled data for a particular task (like classifying legal documents or solving chemistry problems), fine-tuning can significantly boost accuracy on that task. The model learns task-specific patterns that a general model might not capture, resulting in higher performance on the metrics that matter to you.
+Fine-tuning does require effort (and in the case of large proprietary models, often one must use smaller open-source models for custom fine-tunes). But it “unlocks” capabilities of the base model and aligns them with your needs without the extreme expense of training from scratch. In essence, you should consider fine-tuning when the out-of-the-box model’s outputs are not satisfactory in accuracy, style, or adherence to instructions for your specific application.
+
+Vision and Multimodal Models (GPT-4, Gemini, etc.)
+1_oWIIg282ljWp3OGqfvy3SQ
+
+Multimodal LLMs process more than just text — they handle inputs like images, audio, and video.
+
+GPT-4 is a major step, accepting image + text inputs and producing text outputs. It can analyze images, explain memes, or read handwriting, thanks to its architecture trained on both image and text data.
+
+Google’s Gemini, built natively for multiple modalities (text, image, code, video, audio), was trained and fine-tuned across them from the start, unlike earlier models that combined separate systems. This allows seamless reasoning across formats, like answering text questions based on an image.
+
+These models enable new applications: interpreting charts, debugging screenshots, or turning sketches into code.
+
+While most still output only text (e.g., GPT-4), the future points to integrated models that both understand and generateacross modalities.
+
+Key takeaway: Multimodal LLMs fuse vision, language, and other data types in one model — unlocking far richer, more flexible AI capabilities.
+
+Reasoning and Step-by-Step Thought in LLMs
+Modern LLMs can reason through complex problems, especially using techniques like chain-of-thought (CoT) prompting, where they're told to "think step by step." This helps them break problems into smaller parts and improves accuracy on tasks like math, logic, and commonsense reasoning.
+
+For example, asking “Think step by step about 24×17” leads to intermediate steps and the correct answer. Research (Wei et al., 2022) shows CoT significantly boosts performance, even in models that struggle otherwise.
+
+Advanced techniques like self-consistency (voting over multiple reasoning paths) and fine-tuning on solution datasetsfurther enhance reasoning. Newer models like Gemini combine reasoning with multimodal inputs (text + images).
+
+While LLMs don’t truly think, prompting them to “show their work” makes their outputs more logical, transparent, and accurate — mimicking how humans solve complex problems.
+
+Tool Use and Function Calling by LLMs
+LLMs have limitations like outdated knowledge or weak math skills. Tool use solves this by letting models call external tools (e.g. calculators, APIs). OpenAI’s function calling lets developers define functions, which GPT-4 can call by returning a structured JSON with arguments when needed.
+
+Earlier methods like ReAct (Reason + Act) and Toolformer showed models can learn to decide when and how to use tools. A key real-world use is Retrieval-Augmented Generation (RAG), where the model fetches relevant documents before answering — improving factual accuracy.
+
+Systems like ChatGPT plugins, Bing Chat, and AWS Bedrock all use tool calling to extend model capabilities — from web search to math to automation. Tool use turns LLMs into powerful, practical agents, no longer limited by their training data.
+
+Major LLM APIs and Providers
+The LLM API ecosystem is expanding, offering many powerful options:
+
+OpenAI (GPT-3.5, GPT-4): Best-in-class performance, with features like function calling and long context (up to 32k). Closed-source, costly, API-only.
+Anthropic (Claude 2): Safe, high-quality output with a 100k token context, ideal for long inputs. Uses “Constitutional AI” for alignment.
+Azure OpenAI: OpenAI models via Azure with enterprise-grade security. Best for those using Azure’s cloud services.
+AWS Bedrock: Unified API for multiple models (Claude, Jurassic-2, Cohere, LLaMA 2, Mistral). Great flexibility and enterprise features.
+Google Vertex AI (PaLM/Gemini): Strong in multilingual tasks and reasoning. Gemini is the upcoming multimodal successor to PaLM.
+Others (Cohere, AI21): Cohere offers business-friendly deployment (including on-prem). AI21’s Jurassic-2 excels at long-form generation.
+Summary:
+
+Closed leaders (OpenAI, Anthropic, Google) offer cutting-edge models via cloud APIs. Open and enterprise-friendly providers (like Cohere, AI21) offer more customization. Developers can mix models (e.g. GPT-4 for hard tasks, cheaper models for others) to balance cost, speed, and quality.
+
+Technical Considerations: Inference, Attention Heads, Tokenization, Context Window
+🔧 Key LLM Technical Concepts (Simplified)
+Inference:
+
+Model generating output (not training). Slower with larger models or longer inputs due to quadratic attention cost(O(n²)).
+
+Attention Heads:
+
+Multiple “attention heads” help the model focus on different aspects of input (syntax, coreference, etc.). More heads = richer understanding but higher compute.
+
+Tokenization & Token Limits:
+
+Text is split into tokens (sub-word units). Models have a context window (e.g., 4k, 32k, 100k tokens). Long prompts must fit in this limit, or older tokens are dropped.
+
+Context Window:
+
+The total number of tokens a model can see (input + output). Bigger windows support longer inputs but cost more and may have diminishing returns.
+
+Open vs Proprietary Models:
+
+Open-weight models (e.g., LLaMA 2) = downloadable, customizable, self-hostable.
+
+Proprietary models (e.g., GPT-4, Claude) = accessed via API only, often more capable but less flexible.
+
+Trade-off: control & privacy vs performance & ease of use.
+
+Bottom Line:
+
+Understanding inference cost, attention mechanics, token limits, and model types (open vs closed) is key to building efficient, powerful LLM applications. The field is evolving fast, but these fundamentals stay relevant.

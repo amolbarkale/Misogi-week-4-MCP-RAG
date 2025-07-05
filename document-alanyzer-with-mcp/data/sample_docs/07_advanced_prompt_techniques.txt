@@ -1,0 +1,189 @@
+Advanced Prompting Techniques for LLMs
+Prompt Types: Zero-shot, One-shot, Few-shot
+1_GG8LmLk1vgxYW4QkivDE1w
+
+Zero-shot prompting means instructing the model to perform a task without providing any examples in the prompt. Large LMs often have surprising zero-shot abilities out-of-the-box. For example, simply asking “Translate the sentence ‘Hello world’ into French.” with an LLM can work without any demonstration. In code, a zero-shot system prompt might look like:
+
+response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Translate 'Hello, world!' to French."}
+    ]
+)
+print(response.choices[0].message.content)  # e.g., "Bonjour le monde !"
+However, zero-shot can fail on complex tasks.
+
+One-shot prompting provides a single example. For instance, you can give one example translation before asking the model to translate a new sentence:
+
+prompt = """Translate English to French:
+'Good morning.' → 'Bonjour.'
+'How are you?' → """
+response = openai.Completion.create(model="gpt-4o-2024-08-06", prompt=prompt, max_tokens=10)
+print(response.choices[0].text.strip())  # e.g., "Comment ça va?"
+The example (“Good morning. → Bonjour.”) guides the model’s format.
+
+Few-shot prompting (in-context learning) provides multiple examples in the prompt. As DAIR’s Prompt Engineering Guide notes, adding demonstrations greatly improves performance on harder tasks. For example, in a sentiment classification task we might include a few labeled examples before the user’s input. In practice, even random example labels can help the model latch onto the task format. In summary, few-shot prompting “serves as conditioning for subsequent examples”. If performance is still insufficient, it may indicate the need for more advanced techniques (like reasoning prompts or fine-tuning).
+
+Chain-of-Thought and Self-Ask Patterns
+Complex problems often stump direct prompts. Chain-of-thought (CoT) prompting encourages the model to explicitly reason step-by-step before giving a final answer. For example, Wei et al. (2022) showed that inserting intermediate reasoning (often with “Let’s think step by step”) lets GPT-4 solve multi-step math. In practice, we can write a prompt like:
+
+prompt = "Q: Roger has 5 tennis balls. He buys 2 more cans of tennis balls with 3 balls each. How many tennis balls does he have? A: Let's think step by step.\n"
+response = openai.Completion.create(model="gpt-4", prompt=prompt, max_tokens=50)
+print(response.choices[0].text)
+This yields a breakdown of the calculation, resulting in the correct answer. As one example (see Figure below), standard prompting without reasoning gave an incorrect answer, whereas the chain-of-thought prompt yielded the correct solution with intermediate steps.
+
+Figure: Example of standard vs. chain-of-thought prompting on arithmetic tasks. The CoT prompt (right) leads the model through its reasoning and produces the correct answer.
+
+Self-Ask prompting is a variant that has the model ask and answer its own sub-questions. Press et al. (2022) describe a workflow where the prompt instructs the model to explicitly decompose a hard question into simpler follow-ups, answer each, and then give a final answer. For instance:
+
+Question: Who won the Masters Tournament in 1994, the year Justin Bieber was born?
+Are follow up questions needed here: Yes.
+Follow up: When was Justin Bieber born? Intermediate answer: 1994.
+Follow up: Who won the Masters Tournament in 1994? Intermediate answer: [Insert winner].
+So the final answer is: [Synthesized answer].
+As LearnPrompting notes, Self-Ask “breaks [the question] down into simpler sub-questions” explicitly. This is especially helpful in domains like customer support or research, where complex queries naturally split into parts. (Self-Ask can even integrate search: after posing a sub-question, the agent could call a search engine to find its answer.)
+
+Meta-Prompting and Prompt-Building Tools
+1_WogDzADP3s0mUVx_ZrV7xA
+
+Meta-prompting treats prompts themselves abstractly. Instead of feeding task-specific content, you design prompts that capture general structure or template. Zhang et al. (2024) define meta-prompting as focusing on “the structural and syntactical aspects of tasks” rather than content. In other words, you give the model a blueprint for how to solve problems. For example, a structure-meta prompt for math problems might specify:
+
+Begin with “Let’s think step by step.”
+Give clear reasoning steps.
+Wrap the final answer in a LaTeX box or explicit marker.
+Explicitly state “The answer is [answer].”
+A recent paper illustrates this: it provides a structured meta-prompt (see Figure below) and example problems to show the format. Each example shows the form of the solution (step breakdown, final answer format) without tying to specific numbers. By emphasizing syntax and format, meta-prompts can be reused across domains. They tend to be token-efficient (because they avoid long, concrete examples) and act more like zero-shot instructions. For instance, the figure below (from Zhang et al.) shows a meta-prompt for solving MATH problems: start with “Let’s think step by step,” show reasoning, end with “The final answer is ….”
+
+In practice, prompt-building tools can also help craft and test prompts. Developers use frameworks like LangChain or PromptFlow to automate prompt design, chain prompts, and handle tool integrations. Automated utilities (e.g. PromptLayer, LangSmith) let you iteratively refine prompts, track versions, and compare performance. Some systems even employ an “automatic prompt engineer” agent that generates or optimizes prompts given high-level objectives. In general, leverage libraries and community resources: GitHub “Prompt Hub” repositories, Hugging Face prompt collections, or UI interfaces (OpenAI Playground, AI21, Claude) to experiment rapidly.
+
+Prompt Structuring: Roles, Delimiters, and the “Sandwich”
+Organizing your prompt content clearly is crucial. Two common patterns are role prompting and use of delimiters. Role prompting simply means telling the LLM its persona or task role upfront. For example, starting with “You are a helpful assistant.” or “Act as an experienced interviewer.” gives the model context about tone and scope. Explicit roles can improve style and focus: if you say “You are a historian,” the assistant might produce a more factual, formal explanation. Hugging Face’s prompt libraries abound with role-based starters (e.g. “I want you to act as a Linux terminal” or “I want you to act as an English translator”). Code example:
+
+messages = [
+    {"role": "system", "content": "You are an experienced Java programmer."},
+    {"role": "user", "content": "Explain the difference between interface and abstract class in Java."}
+]
+response = openai.ChatCompletion.create(model="gpt-4", messages=messages)
+Use delimiters (special markers) to separate parts of the prompt. Common delimiters include ---, ````` (markdown or code fences), XML-style tags, or unique token sequences. Jon Bishop notes that XML tags are especially effective with models like Claude or AWS Bedrock, which recognize structured markup. In practice, delimiters help the model distinguish instructions from user content. For example:
+
+--- Instructions ---
+Please translate the text below to Spanish.
+--- Text to Translate ---
+"Hello, how are you?"
+This clearly splits the instruction from the content. Bishop recommends using any clear delimiter over none. Many use a triple-backtick code block or simply labeled sections. The key is consistency: if you always wrap examples or content blocks in tags (XML or markdown fences), the LLM learns to treat them as atomic units.
+
+The Sandwich Defense is a related technique (used mainly for security). It “sandwiches” untrusted input between instructions to avoid prompt injection. For example, instead of:
+
+Translate the following to French: {user_input}
+you do:
+
+Translate the following to French:
+
+{user_input}
+
+Remember, you are translating the above text to French.
+Here the user input is “sandwiched” between instructions, making it harder for malicious content to escape the intended task. (Note this isn’t foolproof, but it’s a practical mitigation against injection.)
+
+Task Decomposition & Prompt Chaining
+Break complex tasks into simpler subtasks and solve them sequentially (prompt chaining). For example, to answer a question about a long document, first use one prompt to retrieve or extract relevant passages, then feed those passages into a second prompt that formulates the final answer. LangChain and LangGraph describe this “workflow” pattern: each LLM call produces output that serves as input for the next prompt. This improves performance and transparency: you can inspect intermediate outputs at each stage.
+
+Prompt chaining is useful when a single prompt would be too complex or ambiguous. For instance, you might have a chain like:
+
+Extract key facts from user query (or document).
+Use those facts to perform a computation or lookup.
+Generate final answer or action.
+Each step is a separate prompt (or even separate agent). This makes debugging easier and lets you insert checks or tool calls between steps. Here’s a simplified example:
+
+# Step 1: Identify entities
+step1 = openai.ChatCompletion.create(model="gpt-4", messages=[
+    {"role": "user", "content": "Find all person names and dates in this text: 'Alice (born 1980) and Bob (born 1975)...'"}
+])
+entities = step1.choices[0].message.content
+
+# Step 2: Query knowledge base on each entity
+step2 = knowledge_base_lookup(entities)  # pseudo-call to a DB or search
+facts = step2
+
+# Step 3: Synthesize final answer
+step3_prompt = f"Using the facts {facts}, answer the user's question."
+final = openai.ChatCompletion.create(model="gpt-4", messages=[{"role": "user", "content": step3_prompt}])
+print(final.choices[0].message.content)
+By chaining prompts, we can decompose tasks (e.g. “first summarise, then classify”) and then recombine results. This approach powers many AI agent systems. For instance, a Supervisor Agent can orchestrate multiple specialized sub-agents (one for math, one for search, etc.). The supervisor analyzes the high-level request and delegates parts to worker agents, each with its own prompt and tools. In LangChain’s langgraph, a supervisor pattern is explicitly implemented to control flow between agents.
+
+Handling Ambiguity and Failures
+Real-world prompts can be ambiguous or lead the model astray. Best practice is to instruct the model to handle uncertainty. For example, you might include in the prompt: “If the question is ambiguous or lacks information, ask for clarification rather than guessing.” or “If you are not sure, say you don’t know.” This sets expectations and can prevent confident but incorrect answers. Some techniques include:
+
+Clarifying questions: Prompt the model to rephrase or ask for more detail when needed. E.g., “Do you need more information about X?”
+Multiple-answer strategy: Have the model list possible interpretations.
+Two-pass prompting: First ask the model to outline its plan (“Plan your solution in bullet points”), then ask it to execute the plan.
+When an LLM “fails” (gives nonsense or repeats training data verbatim), try reformulating the prompt, adding examples, or using self-refinement prompts (where the LLM critiques and revises its own answer). It’s common to catch failures by having the model justify its answer. For example, instruct it: “Explain your reasoning. If you are unsure, say so.”
+
+Reducing Hallucination
+LLM hallucinations – confidently stated falsehoods – are a major concern. Key strategies to mitigate them include:
+
+Retrieval-Augmented Generation (RAG): Before answering, retrieve relevant facts from a trusted source (database, wiki, documents) and include them in the prompt. RAG grounds the model in real data, effectively bypassing its static knowledge cutoff. In practice, build a retriever that finds relevant paragraphs, then do: "context: [retrieved text] + question: [user question]" as the prompt. As one study reports, RAG “makes LLMs adaptive for situations where facts could evolve over time” and can reduce hallucinations substantially. For example, a customer-support bot might first query the company FAQ, then feed the answer to the LLM to ensure factuality.
+
+Chain-of-Thought (again): For factual or logical tasks (math, scheduling, fact-checking), prompt the model to reason step-by-step. This curbs leaps of intuition and often surfaces mistakes. Empirical tests show CoT prompts can dramatically improve correctness on complex queries. In effect, it forces the model to “show its work,” making it easier to spot errors.
+
+Self-consistency and voting: Generate multiple reasoning paths (by sampling with temperature) and see if they converge on the same answer. If not, either re-prompt or flag uncertainty.
+
+Data filters and guardrails: For high-risk domains (medical, legal), add instructions like “Only provide information that is certain. If you are not 100% sure, advise the user to consult an expert.” Implement content filters and review generated references. As one guide notes, vague prompts often lead to hallucination, so being explicit about fidelity helps.
+
+Overall, combining RAG with careful prompting (“Show your reasoning; verify sources”) has proven effective: one analysis showed retrieval-based techniques reduced hallucinations by ~50% or more in test cases.
+
+Finding Domain-Specific Prompts and Examples
+Don’t reinvent the wheel for every task. Many communities share “prompt libraries” and best-practice templates. For example, Hugging Face hosts an “awesome prompts” dataset with hundreds of ready-made ChatGPT prompts (roles like interviewer, translator, code assistant, etc.). Daniel Rosehill’s System Prompt Library (on Hugging Face) curates 900+ system prompts for diverse AI assistants. These can spark ideas: look up relevant keywords (e.g. “LLM legal assistant prompt”, “few-shot sentiment examples”) or browse repositories and forums (like OpenAI’s Cookbook, Prompt Engineering communities, or prompt marketplaces).
+
+For a given domain, incorporate domain terminology and constraints. A Reddit proverb says: “The best prompt often uses relevant domain terms, constraints, and few examples.” Indeed, including sample inputs/outputs from the target domain can jump-start performance. In summary, leverage existing resources: system messages from well-known GPT tools, prompt catalogs, or community threads. Adapt them by changing role/persona and format to your needs.
+
+Prompt Safety and Mitigation
+Alongside content strategy, consider safety:
+
+Role-based safety prompts: Prepend a system message that reminds the model of its limits (e.g. “You must not reveal personal data or generate disallowed content.”). This is similar to how ChatGPT uses system instructions.
+Sanitizing user input: Before inserting user text into prompts, remove malicious patterns or extreme content if possible. Use strict delimiters around user data, as noted above.
+Scoped prompt structure: Use “you are X” or markup to confine the model’s behavior. For example, telling the model it is an assistant with strict rules can reduce undesired outputs.
+Fallback instructions: Include a line like “If the request is harmful or unclear, refuse politely.” or “Answer truthfully or say ‘I don’t know.’”
+These measures turn the prompt into a mini-policy. For example, one could write:
+
+You are a knowledgeable medical assistant. Provide factual medical information only. If a question is beyond your knowledge, say 'I'm sorry, I don't have that information.'
+User: [...]
+This guides the model to self-moderate. While no technique is perfect, combining user role-play with clear safety instructions and content filters helps mitigate risks.
+
+External Tools and Model Integration
+Modern LLM systems often use external tools or APIs to overcome limitations:
+
+Retrieval (RAG): As above, connect to search indices, knowledge bases or databases to fetch real-time info. Common stacks use Elasticsearch or vector stores plus an LLM pipeline.
+
+Function Calling / API Tools: Newer LLMs (GPT-4, Claude, etc.) support calling structured functions. You define functions (like get_current_weather(location)) and let the model decide which to invoke. OpenAI’s function calling lets the model output JSON specifying which function to call and with what arguments. For example, a weather agent might be prompted:
+
+The user asks: "What is the weather in Paris today?"
+You have access to function: get_current_weather(location, unit).
+The model then emits: {"name": "get_current_weather", "arguments": {"location": "Paris, France", "unit": "Celsius"}}. Your code executes the function (e.g. a real weather API) and returns the result to the model for final formatting. This lets LLMs use calculators, search, databases, etc.
+
+Toolkit Agents: Frameworks like LangChain enable defining tools (web search, calculators, Python REPL, SQL executor) and writing prompts that allow the LLM to “choose” a tool and parse results. ReAct-style prompting is common: the model alternates between thinking, acting (tool call), and observing.
+
+Multi-Modal Inputs: Some LLMs can process images or other data. Use XML/JSON boundaries to include non-text.
+
+By integrating tools, you turn an LLM into an agent that can handle real-time data or structured tasks. Always design the prompt so that external outputs (from tools) fit naturally into the prompt flow.
+
+Fine-Tuning and Model Selection Insights
+Prompting is powerful, but sometimes fine-tuning or choosing a better model is needed. Use this guideline:
+
+Fine-tune when: you have a large, high-quality domain dataset (e.g. thousands of labeled examples) and need consistent output in that domain. Fine-tuning adjusts the model’s parameters to your data, which can yield higher accuracy and adherence to your conventions. Recent advances (e.g. GPT-4o) allow fine-tuning even “with a few dozen examples” for significant gains. Companies have fine-tuned GPT-4o on code or specialized legal text and seen state-of-the-art results.
+Prompt-engineer when: your task is changing rapidly, you lack massive data, or you prefer to avoid the cost/complexity of training. Prompting excels at quick experimentation.
+Model size/capacity: Larger models (GPT-4, Claude 3, etc.) often perform better out-of-box and support advanced prompts (CoT), but they cost more. If resources are limited, a mid-sized open model (e.g. LLaMA-2 13B) fine-tuned on your domain may suffice. Consider pre-trained strengths: a model specialized for code (Codex, Code Llama) will do better on programming tasks without much tuning. Also factor deployment constraints (latency, memory): smaller distilled models can run on-device if needed, at the expense of capability.
+
+In summary, start with the largest available model for prototyping (to see if prompting can solve your task). If results plateau, assess whether fine-tuning or retrieval will help. Industry experience suggests: “Don’t underestimate the hidden costs of fine-tuning” — data prep and tuning can be significant.
+
+Best Practices & Real-World Use Cases
+Best practices: Keep prompts clear and concise. Use short sentences, bullet lists, or step numbering when appropriate. Validate prompts empirically: test variations (different delimiters, wording) and compare outputs. Log and monitor outputs in production: track cases of error or hallucination and refine the prompt or model accordingly. Use system roles and style instructions to match the desired format (e.g. “Write as a concise report” vs. “Write a persuasive email”). Always include explicit instructions for format and content (e.g. “Use XML output” or “Provide only JSON, no explanation” if needed). Finally, include error handling: if the model’s output doesn’t match expectations, build a fallback prompt or escalate to a rule-based system.
+
+Applications: Advanced prompting powers many AI systems. For example:
+
+Customer support and chatbots: role-prompt the model as a support agent, use RAG to pull from documentation, and chain prompts for troubleshooting steps.
+Coding assistants: structure prompts with code fences and explainers, prompt in the role of expert engineer, and call compilers/tools to validate snippets. Fine-tune on company code examples if available.
+Data analysis: feed CSV or JSON as delimited text and prompt LLM to summarize, query, or visualize data. Use step-by-step prompts for calculations or table processing.
+Content generation: use persona-based roles (“marketing copywriter”), few-shot examples, and chain-of-thought for creative brainstorming.
+Education and tutoring: train the model to explain solutions step-by-step (CoT) and ask leading questions (self-ask) for student queries.
+Across domains—healthcare, finance, legal, coding, science—advanced prompts (role, CoT, RAG, etc.) dramatically enhance LLM reliability and utility. By structuring tasks, incorporating tools, and guiding the model’s behavior, developers can build sophisticated AI agents that collaborate, reason, and produce trustworthy outputs in the real world.
