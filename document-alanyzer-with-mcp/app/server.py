@@ -6,14 +6,23 @@ from fastmcp import FastMCP
 import nlp
 from database import init_database
 import document_service
+import os
+from pathlib import Path
 
 # 1) Create your FastAPI app and mount "data/static"
 api = FastAPI(title="Doc-Analyzer")
-api.mount(
-    "/static",
-    StaticFiles(directory="data/static"),
-    name="static",
-)
+
+# Mount static files with proper path handling
+static_dir = Path("data/static")
+if static_dir.exists() and static_dir.is_dir():
+    api.mount(
+        "/static",
+        StaticFiles(directory=str(static_dir)),
+        name="static",
+    )
+    print(f"✅ Static files mounted from: {static_dir.absolute()}")
+else:
+    print(f"⚠️  Static directory not found: {static_dir.absolute()}")
 
 # Add health check endpoint
 @api.get("/health")
