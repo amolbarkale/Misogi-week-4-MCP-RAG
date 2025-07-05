@@ -2,6 +2,8 @@
 
 A powerful MCP (Model Context Protocol) server for comprehensive document analysis including sentiment analysis, keyword extraction, readability scoring, and full-text search.
 
+![Document Analyzer](doc_analyzer.jpg)
+
 ## 🚀 Features
 
 - **Document Storage**: Store and manage documents with metadata
