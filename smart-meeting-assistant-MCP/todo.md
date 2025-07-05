@@ -8,11 +8,12 @@ Build an MCP server that manages meetings and calendars with AI-powered features
 ## 📋 Phase 1: Foundation (2-3 hours)
 
 ### Project Setup
-- [ ] Create Python virtual environment with `python -m venv venv`
-- [ ] Activate virtual environment (`venv\Scripts\activate` on Windows)
-- [ ] Create `requirements.txt` with core dependencies
-- [ ] Install dependencies: `pip install fastapi uvicorn mcp sqlmodel pendulum openai`
-- [ ] Install dev dependencies: `pip install ruff black pytest`
+- [x] ~~Create Python virtual environment with `python -m venv venv`~~
+- [x] ~~Activate virtual environment (`venv\Scripts\activate` on Windows)~~
+- [x] ~~Create `requirements.txt` with core dependencies~~
+- [x] ~~Install dependencies: `pip install fastapi uvicorn mcp sqlmodel pendulum openai`~~
+- [x] ~~Install dev dependencies: `pip install ruff black pytest`~~
+- [x] ~~Install FastMCP: `pip install fastmcp`~~
 - [ ] Setup basic project structure
 
 ### Directory Structure
@@ -57,10 +58,9 @@ Build an MCP server that manages meetings and calendars with AI-powered features
 - [ ] Load seed data into database
 
 ### Basic MCP Integration
-- [ ] Setup FastAPI app in `main.py`
-- [ ] Integrate MCP server with FastAPI
-- [ ] Create first MCP tool: `create_meeting`
-- [ ] Test MCP server starts correctly
+- [ ] Setup FastMCP app in `main.py`
+- [ ] Create first MCP tool with `@app.tool()` decorator: `create_meeting`
+- [ ] Test FastMCP server starts correctly
 - [ ] Test first tool works with Claude Desktop
 
 ### Scheduling Engine Core
@@ -178,6 +178,7 @@ Build an MCP server that manages meetings and calendars with AI-powered features
 
 ### Technical Decisions Made:
 - Using pip + requirements.txt for dependency management (familiar and simple)
+- Using FastMCP for MCP server (decorator-based, simple, production-ready)
 - Using SQLite for simplicity (no setup required)
 - Single OpenAI API for all AI features
 - Heuristic-based scheduling (not complex optimization)
