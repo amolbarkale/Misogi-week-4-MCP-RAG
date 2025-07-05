@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastmcp import FastMCP
 import nlp
 from database import init_database
-from document_service import document_service
+import document_service
 
 # 1) Create your FastAPI app and mount "data/static"
 api = FastAPI(title="Doc-Analyzer")
