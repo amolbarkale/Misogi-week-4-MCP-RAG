@@ -64,8 +64,7 @@ class MeetingResponse(BaseModel):
 def create_meeting(
     title: str,
     participants: List[str],
-    duration: int,
-    preferences: Optional[Dict[str, Any]] = None
+    duration: int
 ) -> MeetingResponse:
     """
     Create a new meeting with intelligent scheduling.
@@ -74,7 +73,6 @@ def create_meeting(
         title: The meeting title
         participants: List of participant email addresses
         duration: Meeting duration in minutes
-        preferences: Optional meeting preferences (timezone, preferred times, etc.)
     
     Returns:
         Meeting details with assigned ID and status
@@ -139,13 +137,15 @@ def create_meeting(
     
     except Exception as e:
         logger.error(f"Error creating meeting: {e}")
-        # Return error response instead of raising
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        # Return error response with detailed error info
         return MeetingResponse(
             meeting_id="error",
             title=title,
             participants=participants,
             duration=duration,
-            status="error",
+            status=f"error: {str(e)}",
             created_at=datetime.now()
         )
 
@@ -254,13 +254,15 @@ def find_optimal_slots(
         
     except Exception as e:
         logger.error(f"Error finding optimal slots: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return [{
             "start_time": "",
             "end_time": "",
             "score": 0,
             "available_participants": [],
             "conflicted_participants": participants,
-            "reasoning": f"Error: {str(e)}",
+            "reasoning": f"Error: {str(e)} - Check server logs for details",
             "timezone": "UTC"
         }]
 
