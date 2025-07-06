@@ -8,7 +8,7 @@ that Claude Desktop can use to interact with our meeting management system.
 import os
 import sys
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 
 # Load environment variables from .env files
@@ -80,17 +80,44 @@ def create_meeting(
         Meeting details with assigned ID and status
     """
     try:
+        from src.models import UserCreate, TimezoneEnum
+        
+        # First, ensure all participants exist in the database
+        user_service = UserService()
+        existing_users = user_service.get_all_users()
+        existing_emails = {user.email for user in existing_users}
+        
+        # Create users that don't exist yet
+        for participant_email in participants:
+            if participant_email not in existing_emails:
+                # Extract name from email (simple approach)
+                name = participant_email.split('@')[0].replace('.', ' ').title()
+                
+                # Create new user
+                user_create = UserCreate(
+                    name=name,
+                    email=participant_email,
+                    timezone=TimezoneEnum.US_EASTERN,  # Default timezone
+                    preferences={
+                        "preferred_start_time": "09:00",
+                        "preferred_end_time": "17:00",
+                        "max_daily_meetings": 6
+                    }
+                )
+                user_id = user_service.create_user(user_create)
+                logger.info(f"Created new user: {name} ({participant_email})")
+        
         # Create meeting data object
         meeting_data = MeetingCreateModel(
             title=title,
-            start_time=datetime.now(),  # For now, just use current time
+            start_time=datetime.now() + timedelta(hours=1),  # Schedule for 1 hour from now
             duration_minutes=duration,
             participants=participants,
             meeting_type=MeetingType.TEAM_MEETING,
             description=f"Meeting scheduled with {len(participants)} participants"
         )
         
-        # Use first participant as organizer for now
+        # Use first participant as organizer
         organizer_id = participants[0] if participants else "default@example.com"
         
         # Create meeting using the service

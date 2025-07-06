@@ -4,7 +4,10 @@
       "command": "fastmcp",
       "args": [
         "run", "C:/Users/Amol Barkale/Desktop/MisogiAI/week-4/smart-meeting-assistant-MCP/src/main.py"
-      ]
+      ],
+      "env": {
+        "GEMINI_API_KEY": "your_gemini_api_key_here"
+      }
     }
   }
 } 
