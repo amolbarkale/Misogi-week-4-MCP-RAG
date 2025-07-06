@@ -11,6 +11,11 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
+# Load environment variables from .env files
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file
+load_dotenv('.env.local')  # Load .env.local file (takes precedence)
+
 # Add the project root to Python path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
@@ -312,14 +317,16 @@ def generate_agenda_suggestions(
     """
     try:
         import os
-        from openai import OpenAI
+        import google.generativeai as genai
         
-        # Initialize OpenAI client (API key from environment)
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
-        
-        if not os.getenv("OPENAI_API_KEY"):
+        # Initialize Gemini client (API key from environment)
+        gemini_key = os.getenv("GEMINI_API_KEY", "")
+        if not gemini_key:
             # Return template agenda if no API key
             return _generate_template_agenda(meeting_title, participants, duration_minutes, meeting_type)
+        
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-pro')
         
         # Create context-aware prompt
         prompt = f"""
@@ -349,18 +356,13 @@ def generate_agenda_suggestions(
         }}
         """
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=1000
-        )
+        response = model.generate_content(prompt)
         
         # Parse AI response
         import json
-        ai_response = response.choices[0].message.content
+        ai_response = response.text
         if not ai_response:
-            raise ValueError("Empty response from AI")
+            raise ValueError("Empty response from Gemini")
         ai_agenda = json.loads(ai_response)
         
         # Add metadata
@@ -833,12 +835,15 @@ def _generate_ai_insights(meeting, effectiveness_score: float) -> List[str]:
     """Generate AI insights if OpenAI is available"""
     try:
         import os
-        from openai import OpenAI
+        import google.generativeai as genai
         
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+        gemini_key = os.getenv("GEMINI_API_KEY", "")
         
-        if not os.getenv("OPENAI_API_KEY"):
-            return ["AI insights require OpenAI API key"]
+        if not gemini_key:
+            return ["AI insights require Gemini API key"]
+        
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-pro')
         
         prompt = f"""
         Analyze this meeting and provide 2-3 specific insights:
@@ -852,14 +857,9 @@ def _generate_ai_insights(meeting, effectiveness_score: float) -> List[str]:
         Provide actionable insights to improve meeting effectiveness.
         """
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=300
-        )
+        response = model.generate_content(prompt)
         
-        ai_response = response.choices[0].message.content
+        ai_response = response.text
         if ai_response:
             return [insight.strip() for insight in ai_response.split('\n') if insight.strip()]
         
@@ -1107,12 +1107,15 @@ def _generate_ai_optimization_suggestions(user_id: str, current_metrics: Dict, o
     """Generate AI-powered optimization suggestions"""
     try:
         import os
-        from openai import OpenAI
+        import google.generativeai as genai
         
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+        gemini_key = os.getenv("GEMINI_API_KEY", "")
         
-        if not os.getenv("OPENAI_API_KEY"):
-            return ["AI suggestions require OpenAI API key - using template suggestions"]
+        if not gemini_key:
+            return ["AI suggestions require Gemini API key - using template suggestions"]
+        
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-pro')
         
         prompt = f"""
         Provide 3-4 specific, actionable suggestions to optimize this user's meeting schedule:
@@ -1127,14 +1130,9 @@ def _generate_ai_optimization_suggestions(user_id: str, current_metrics: Dict, o
         Focus on practical, implementable suggestions for better productivity.
         """
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=400
-        )
+        response = model.generate_content(prompt)
         
-        ai_response = response.choices[0].message.content
+        ai_response = response.text
         if ai_response:
             suggestions = [s.strip() for s in ai_response.split('\n') if s.strip() and not s.strip().startswith('#')]
             return suggestions[:4]  # Limit to 4 suggestions
