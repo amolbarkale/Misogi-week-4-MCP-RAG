@@ -149,10 +149,10 @@ class MeetingService:
             
             # Look up organizer user ID from email within the same session
             from sqlmodel import select
-            organizer_statement = select(User).where(User.email == organizer_email)
-            organizer_user = session.exec(organizer_statement).first()
+            organizer_statement = select(User.id).where(User.email == organizer_email)
+            organizer_id = session.exec(organizer_statement).first()
             
-            if not organizer_user:
+            if not organizer_id:
                 raise ValueError(f"Organizer user not found: {organizer_email}")
             
             # Calculate end time using timedelta
@@ -165,7 +165,7 @@ class MeetingService:
                 start_time=meeting_data.start_time,
                 end_time=end_time,
                 duration_minutes=meeting_data.duration_minutes,
-                organizer_id=organizer_user.id,  # Use user ID, not email
+                organizer_id=organizer_id,  # Use the ID directly
                 participants=meeting_data.participants,
                 meeting_type=meeting_data.meeting_type,
                 location=meeting_data.location,

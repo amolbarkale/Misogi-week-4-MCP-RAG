@@ -2,6 +2,10 @@
 
 A comprehensive **Model Context Protocol (MCP)** server for intelligent meeting scheduling and analysis, powered by **Google Gemini AI** and designed for Claude Desktop integration.
 
+![Smart Meeting Assistant](meeting_analyzer.jpg)
+
+*Smart Meeting Assistant in action - AI-powered meeting scheduling, conflict detection, and optimization with seamless Claude Desktop integration*
+
 ## 🚀 **Features**
 
 ### 📅 **Core Meeting Management**
