@@ -6,14 +6,38 @@ that Claude Desktop can use to interact with our meeting management system.
 """
 
 import os
+import sys
+import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+
+# Add the project root to Python path for imports
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
+# Import our modules
+from src.database import init_database, db_manager, UserService, MeetingService
+from src.scheduler import find_optimal_meeting_slots, detect_scheduling_conflicts
+from src.models import MeetingStatus, MeetingType, MeetingCreate as MeetingCreateModel
+
 # Initialize FastMCP app
 app = FastMCP("Smart Meeting Assistant")
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize database on startup
+try:
+    init_database()
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Database initialization failed: {e}")
+    raise
 
 # Pydantic models for type validation
 class MeetingCreate(BaseModel):
@@ -50,30 +74,78 @@ def create_meeting(
     Returns:
         Meeting details with assigned ID and status
     """
-    # For now, we'll create a simple mock response
-    # Later we'll integrate with database and scheduling logic
+    try:
+        # Create meeting data object
+        meeting_data = MeetingCreateModel(
+            title=title,
+            start_time=datetime.now(),  # For now, just use current time
+            duration_minutes=duration,
+            participants=participants,
+            meeting_type=MeetingType.TEAM_MEETING,
+            description=f"Meeting scheduled with {len(participants)} participants"
+        )
+        
+        # Use first participant as organizer for now
+        organizer_id = participants[0] if participants else "default@example.com"
+        
+        # Create meeting using the service
+        meeting_id = MeetingService.create_meeting(meeting_data, organizer_id)
+        
+        # Get the created meeting details
+        meeting = MeetingService.get_meeting_by_id(meeting_id)
+        if not meeting:
+            raise ValueError("Failed to retrieve created meeting")
+        
+        return MeetingResponse(
+            meeting_id=str(meeting_id),
+            title=meeting.title,
+            participants=meeting.participants,
+            duration=meeting.duration_minutes,
+            status=meeting.status.value,
+            created_at=meeting.created_at
+        )
     
-    meeting_id = f"meeting_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    
-    return MeetingResponse(
-        meeting_id=meeting_id,
-        title=title,
-        participants=participants,
-        duration=duration,
-        status="created",
-        created_at=datetime.now()
-    )
+    except Exception as e:
+        logger.error(f"Error creating meeting: {e}")
+        # Return error response instead of raising
+        return MeetingResponse(
+            meeting_id="error",
+            title=title,
+            participants=participants,
+            duration=duration,
+            status="error",
+            created_at=datetime.now()
+        )
 
 # Health check endpoint
 @app.tool()
-def health_check() -> Dict[str, str]:
+def health_check() -> Dict[str, Any]:
     """Check if the MCP server is running properly."""
-    return {
-        "status": "healthy",
-        "server": "Smart Meeting Assistant MCP",
-        "version": "0.1.0",
-        "timestamp": datetime.now().isoformat()
-    }
+    try:
+        # Test database connection
+        with db_manager.get_session() as session:
+            user_service = UserService()
+            # Simple query to test database
+            users = user_service.get_all_users()
+            
+        return {
+            "status": "healthy",
+            "server": "Smart Meeting Assistant MCP",
+            "version": "0.1.0",
+            "database": "connected",
+            "users_count": len(users),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy", 
+            "server": "Smart Meeting Assistant MCP",
+            "version": "0.1.0",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 # Server info
 @app.tool()
@@ -105,4 +177,4 @@ def get_server_info() -> Dict[str, Any]:
 if __name__ == "__main__":
     # This will be used for testing
     print("Smart Meeting Assistant MCP Server")
-    print("Use: fastmcp run src.main:app") 
+    print("Use: fastmcp run src/main.py") 

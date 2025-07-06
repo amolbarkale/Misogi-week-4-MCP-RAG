@@ -10,7 +10,7 @@ from typing import Optional, List, Dict, Any
 from enum import Enum
 
 from sqlmodel import SQLModel, Field, Relationship, JSON, Column
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 
 class TimezoneEnum(str, Enum):
@@ -109,10 +109,11 @@ class Meeting(SQLModel, table=True):
     # organizer: User = Relationship(back_populates="meetings")
     # insights: List["MeetingInsight"] = Relationship(back_populates="meeting")
     
-    @validator('end_time')
-    def validate_end_time(cls, v, values):
+    @field_validator('end_time')
+    @classmethod
+    def validate_end_time(cls, v, info):
         """Ensure end_time is after start_time"""
-        if 'start_time' in values and v <= values['start_time']:
+        if info.data and 'start_time' in info.data and v <= info.data['start_time']:
             raise ValueError('End time must be after start time')
         return v
 
