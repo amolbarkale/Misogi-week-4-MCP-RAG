@@ -3,9 +3,8 @@
     "smart-meeting-assistant": {
       "command": "fastmcp",
       "args": [
-        "run", "src/main.py"
-      ],
-      "cwd": "C:/Users/Amol Barkale/Desktop/MisogiAI/week-4/smart-meeting-assistant-MCP"
+        "run", "C:/Users/Amol Barkale/Desktop/MisogiAI/week-4/smart-meeting-assistant-MCP/src/main.py"
+      ]
     }
   }
 } 
